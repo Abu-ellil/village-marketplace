@@ -1,6 +1,6 @@
-import React from 'react';
-import { Slot } from 'expo-router';
-import { CartProvider } from '../context/CartContext';
+import React from "react";
+import { Slot } from "expo-router";
+import { CartProvider } from "../context/CartContext";
 
 export default function Layout() {
   return (

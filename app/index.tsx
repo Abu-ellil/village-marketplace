@@ -39,7 +39,11 @@ export default function Market() {
 
       <ScrollView contentContainerStyle={{ paddingBottom: 120 }}>
         {filteredProducts.map((p) => (
-          <ProductCard key={String(p.id)} product={p} onAddToCart={() => addToCart(p)} />
+          <ProductCard
+            key={String(p.id)}
+            product={p}
+            onAddToCart={() => addToCart(p)}
+          />
         ))}
 
         <View className="px-4 mt-4">

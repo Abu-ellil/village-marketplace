@@ -2,9 +2,12 @@ import React from "react";
 import { View, Text, TouchableOpacity } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useNavigation } from "expo-router";
+import { useCart } from "../context/CartContext";
 
-const Header = ({ cartItemsCount = 0 }) => {
+const Header = ({ cartItemsCount }: { cartItemsCount?: number }) => {
   const navigation: any = useNavigation();
+  const { totalCount } = useCart();
+  const badge = cartItemsCount ?? totalCount;
 
   return (
     <View className="bg-gradient-to-r from-green-600 to-green-700 px-4 py-3">
