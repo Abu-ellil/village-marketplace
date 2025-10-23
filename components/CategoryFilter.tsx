@@ -1,6 +1,7 @@
 import React from "react";
 import { ScrollView, TouchableOpacity, Text } from "react-native";
 import { Category } from "../types/Category";
+import { colors } from "../theme/colors";
 
 interface CategoryFilterProps {
   categories: Category[];
@@ -17,29 +18,47 @@ const CategoryFilter: React.FC<CategoryFilterProps> = ({
     <ScrollView
       horizontal
       showsHorizontalScrollIndicator={false}
-      className="px-4"
-      contentContainerStyle={{ paddingVertical: 12 }}
+      className="mb-2"
+      contentContainerStyle={{
+        paddingHorizontal: 16,
+        paddingVertical: 8,
+        gap: 8,
+        height:56,
+      }}
     >
-      {categories.map((category) => (
-        <TouchableOpacity
-          key={category.id}
-          onPress={() => onSelectCategory(category.id)}
-          className={`mr-3 px-4 py-2 rounded-full flex-row items-center ${
-            selectedCategory === category.id
-              ? "bg-green-600"
-              : "bg-white border border-gray-200"
-          }`}
-        >
-          <Text className="mr-2 text-lg">{category.icon}</Text>
-          <Text
-            className={`${
-              selectedCategory === category.id ? "text-white" : "text-gray-700"
-            } font-medium`}
+      {categories.map((category) => {
+        const isSelected = selectedCategory === category.id;
+        return (
+          <TouchableOpacity
+            key={category.id}
+            onPress={() => onSelectCategory(category.id)}
+            className={`
+              px-4 py-2.5 rounded-full flex-row items-center
+              ${
+                isSelected
+                  ? "bg-green-400 shadow-sm "
+                  : "bg-white rounded-full border border-neutral-200"
+              }
+            `}
+            style={{
+              shadowColor: colors.primary.DEFAULT,
+              shadowOpacity: isSelected ? 0.2 : 0,
+              shadowRadius: 4,
+              shadowOffset: { width: 0, height: 2 },
+              elevation: isSelected ? 3 : 0,
+            }}
           >
-            {category.name}
-          </Text>
-        </TouchableOpacity>
-      ))}
+            <Text className="mr-2 text-lg">{category.icon}</Text>
+            <Text
+              className={`${
+                isSelected ? "text-white" : "text-neutral-600"
+              } font-medium`}
+            >
+              {category.name}
+            </Text>
+          </TouchableOpacity>
+        );
+      })}
     </ScrollView>
   );
 };

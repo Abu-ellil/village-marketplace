@@ -1,6 +1,7 @@
 import React from "react";
 import { View, TextInput } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
+import { colors } from "../theme/colors";
 
 interface SearchBarProps {
   value: string;
@@ -9,15 +10,23 @@ interface SearchBarProps {
 
 const SearchBar: React.FC<SearchBarProps> = ({ value, onChangeText }) => {
   return (
-    <View className="mx-4 my-3">
-      <View className="flex-row items-center bg-white rounded-lg px-4 py-2 shadow-sm">
-        <Ionicons name="search" size={20} color="#4b5563" />
+    <View className="px-4 py-2">
+      <View className="flex-row items-center bg-white rounded-full px-4 py-3 shadow-md border border-neutral-100">
+        <Ionicons
+          name={value ? "close-circle" : "search"}
+          size={20}
+          color={value ? colors.primary.DEFAULT : colors.neutral[400]}
+          onPress={() => value && onChangeText("")}
+        />
         <TextInput
-          className="flex-1 mr-2 text-right text-gray-800"
-          placeholder="ابحث عن منتج أو خدمة..."
-          placeholderTextColor="#9ca3af"
+          className="flex-1 mr-3 text-right text-base text-neutral-800"
+          placeholder="ابحث عن منتج أو بائع..."
+          placeholderTextColor={colors.neutral[400]}
           value={value}
           onChangeText={onChangeText}
+          clearButtonMode="never"
+          autoCorrect={false}
+          autoCapitalize="none"
         />
       </View>
     </View>
