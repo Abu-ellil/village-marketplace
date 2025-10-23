@@ -24,16 +24,7 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, onAddToCart }) => {
   };
 
   return (
-    <View
-      className="bg-white rounded-2xl overflow-hidden"
-      style={{
-        shadowColor: colors.neutral[900],
-        shadowOpacity: 0.1,
-        shadowRadius: 8,
-        shadowOffset: { width: 0, height: 2 },
-        elevation: 3,
-      }}
-    >
+    <Card noPadding>
       <View className="aspect-square bg-neutral-100 items-center justify-center">
         <Text className="text-6xl">{product.image}</Text>
       </View>

@@ -1,6 +1,6 @@
-import React, { useEffect } from 'react';
-import { View, Animated, Easing, StyleSheet } from 'react-native';
-import { colors } from '../../theme/colors';
+import React, { useEffect } from "react";
+import { View, Animated, Easing, StyleSheet } from "react-native";
+import { colors } from "../../theme/colors";
 
 interface ShimmerProps {
   width?: number | string;
@@ -9,11 +9,11 @@ interface ShimmerProps {
   className?: string;
 }
 
-export default function Shimmer({ 
-  width = '100%',
+export default function Shimmer({
+  width = "100%",
   height = 20,
   borderRadius = 4,
-  className = ''
+  className = "",
 }: ShimmerProps) {
   const animatedValue = React.useRef(new Animated.Value(0)).current;
 
@@ -24,27 +24,29 @@ export default function Shimmer({
           toValue: 1,
           duration: 1000,
           easing: Easing.ease,
-          useNativeDriver: true
+          useNativeDriver: true,
         }),
         Animated.timing(animatedValue, {
           toValue: 0,
           duration: 1000,
           easing: Easing.ease,
-          useNativeDriver: true
-        })
+          useNativeDriver: true,
+        }),
       ])
     ).start();
   }, []);
 
   const translateX = animatedValue.interpolate({
     inputRange: [0, 1],
-    outputRange: [-width, width]
+    outputRange: [-width, width],
   });
 
   return (
-    <View 
+    <View
       className={`overflow-hidden ${className}`}
-      style={[{ width, height, borderRadius, backgroundColor: colors.neutral[200] }]}
+      style={[
+        { width, height, borderRadius, backgroundColor: colors.neutral[200] },
+      ]}
     >
       <Animated.View
         style={[
@@ -53,7 +55,7 @@ export default function Shimmer({
             transform: [{ translateX }],
             backgroundColor: colors.neutral[100],
           },
-          styles.shimmer
+          styles.shimmer,
         ]}
       />
     </View>
@@ -62,7 +64,7 @@ export default function Shimmer({
 
 const styles = StyleSheet.create({
   shimmer: {
-    width: '100%',
-    opacity: 0.3
+    width: "100%",
+    opacity: 0.3,
   },
 });

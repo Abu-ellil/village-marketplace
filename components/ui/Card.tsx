@@ -1,6 +1,6 @@
-import React from 'react';
-import { View, StyleSheet, ViewProps } from 'react-native';
-import { colors } from '../../theme/colors';
+import React from "react";
+import { View, StyleSheet, ViewProps } from "react-native";
+import { colors } from "../../theme/colors";
 
 interface CardProps extends ViewProps {
   children: React.ReactNode;
@@ -8,15 +8,16 @@ interface CardProps extends ViewProps {
   className?: string;
 }
 
-export default function Card({ children, noPadding, className = '', ...props }: CardProps) {
+export default function Card({
+  children,
+  noPadding,
+  className = "",
+  ...props
+}: CardProps) {
   return (
     <View
       className={`bg-white rounded-2xl overflow-hidden ${className}`}
-      style={[
-        styles.shadow,
-        !noPadding && { padding: 16 },
-        props.style,
-      ]}
+      style={[styles.shadow, !noPadding && { padding: 16 }, props.style]}
       {...props}
     >
       {children}

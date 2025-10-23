@@ -7,7 +7,10 @@ import ProductCard from "../components/ProductCard";
 import ServiceCard from "../components/ServiceCard";
 import BottomNav from "../components/BottomNav";
 import EmptyState from "../components/ui/EmptyState";
-import { ProductCardSkeleton, ServiceCardSkeleton } from "../components/ui/CardSkeletons";
+import {
+  ProductCardSkeleton,
+  ServiceCardSkeleton,
+} from "../components/ui/CardSkeletons";
 import { colors } from "../theme/colors";
 import {
   CATEGORIES,
@@ -18,7 +21,9 @@ import { useCart } from "../context/CartContext";
 
 export default function Market() {
   const [query, setQuery] = React.useState("");
-  const [selectedCategory, setSelectedCategory] = React.useState<string | null>(null);
+  const [selectedCategory, setSelectedCategory] = React.useState<string | null>(
+    null
+  );
   const [isLoading, setIsLoading] = React.useState(true);
   const [isRefreshing, setIsRefreshing] = React.useState(false);
   const { addToCart } = useCart();
@@ -39,7 +44,9 @@ export default function Market() {
   const handleRefresh = React.useCallback(async () => {
     setIsRefreshing(true);
     // Simulate refresh
-    await new Promise(resolve => setTimeout(resolve, 1500));
+    await new Promise<void>((resolve) => {
+      setTimeout(() => resolve(), 1500);
+    });
     setIsRefreshing(false);
   }, []);
 
