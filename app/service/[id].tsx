@@ -6,6 +6,7 @@ import Header from "../../components/Header";
 import Button from "../../components/ui/Button";
 import { Ionicons } from "@expo/vector-icons";
 import { colors } from "../../theme/colors";
+import StarRating from "../../components/ui/StarRating";
 
 export default function ServiceDetail() {
   const { id } = useLocalSearchParams();
@@ -18,7 +19,7 @@ export default function ServiceDetail() {
         <Text className="p-4 text-center">الخدمة غير موجودة</Text>
       </View>
     );
-  }
+  };
 
   const makeCall = (phoneNumber?: string) => {
     if (!phoneNumber) return;
@@ -26,8 +27,8 @@ export default function ServiceDetail() {
   };
 
   const averageRating = service.reviews && service.reviews.length > 0
-    ? (service.reviews.reduce((sum, review) => sum + review.rating, 0) / service.reviews.length).toFixed(1)
-    : service.rating?.toFixed(1) || '0.0';
+    ? (service.reviews.reduce((sum, review) => sum + review.rating, 0) / service.reviews.length)
+    : service.rating || 0;
   const numberOfReviews = service.reviews ? service.reviews.length : 0;
 
   return (
@@ -38,13 +39,12 @@ export default function ServiceDetail() {
           <Text className="text-2xl font-bold mb-2">{service.name}</Text>
 
           <View className="flex-row items-center mb-2">
-            <Ionicons name="star" size={18} color={colors.warning} />
-            <Text className="mr-1 text-lg text-warning font-medium">
-              {averageRating}
-            </Text>
-            {numberOfReviews > 0 && (
-              <Text className="text-base text-neutral-500">({numberOfReviews} تقييم)</Text>
-            )}
+            <StarRating
+              rating={averageRating}
+              size={18}
+              showNumber={true}
+              totalReviews={numberOfReviews}
+            />
           </View>
 
           <Text className="text-base text-gray-700 mb-4">
@@ -83,8 +83,7 @@ export default function ServiceDetail() {
               {service.reviews?.map((review) => (
                 <View key={review.id} className="bg-gray-50 p-3 rounded-lg mb-3">
                   <View className="flex-row items-center mb-1">
-                    <Ionicons name="star" size={14} color={colors.warning} />
-                    <Text className="mr-1 text-sm font-semibold">{review.rating}.0</Text>
+                    <StarRating rating={review.rating} size={14} showNumber={true} />
                     <Text className="text-sm text-neutral-500">بواسطة {review.reviewerName}</Text>
                   </View>
                   <Text className="text-gray-700 mb-1">{review.comment}</Text>

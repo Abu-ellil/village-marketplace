@@ -6,6 +6,7 @@ import Button from "./ui/Button";
 import Card from "./ui/Card";
 import { colors } from "../theme/colors";
 import { useRouter } from "expo-router";
+import StarRating from "./ui/StarRating";
 
 interface ServiceCardProps {
   service: Service;
@@ -21,8 +22,8 @@ const ServiceCard: React.FC<ServiceCardProps> = ({ service, onContact }) => {
   };
 
   const averageRating = service.reviews && service.reviews.length > 0
-    ? (service.reviews.reduce((sum, review) => sum + review.rating, 0) / service.reviews.length).toFixed(1)
-    : service.rating?.toFixed(1) || '0.0';
+    ? (service.reviews.reduce((sum, review) => sum + review.rating, 0) / service.reviews.length)
+    : service.rating || 0;
   const numberOfReviews = service.reviews ? service.reviews.length : 0;
 
   return (
@@ -48,16 +49,13 @@ const ServiceCard: React.FC<ServiceCardProps> = ({ service, onContact }) => {
                 <Text className="text-sm text-neutral-500" numberOfLines={1}>
                   {service.provider}
                 </Text>
-                {averageRating !== '0.0' && (
-                  <View className="flex-row items-center mr-2">
-                    <Ionicons name="star" size={12} color={colors.warning} />
-                    <Text className="text-xs text-warning font-medium mr-0.5">
-                      {averageRating}
-                    </Text>
-                    {numberOfReviews > 0 && (
-                      <Text className="text-xs text-neutral-500">({numberOfReviews})</Text>
-                    )}
-                  </View>
+                {averageRating !== 0 && (
+                  <StarRating
+                    rating={averageRating}
+                    size={12}
+                    showNumber={true}
+                    totalReviews={numberOfReviews}
+                  />
                 )}
               </View>
             </View>

@@ -9,6 +9,7 @@ import { formatCurrency } from "../../utils/helpers";
 import ImageWithPlaceholder from "../../components/ui/ImageWithPlaceholder";
 import { Ionicons } from "@expo/vector-icons";
 import { colors } from "../../theme/colors";
+import StarRating from "../../components/ui/StarRating";
 
 export default function ProductDetail() {
   const { id } = useLocalSearchParams();
@@ -26,8 +27,8 @@ export default function ProductDetail() {
   }
 
   const averageRating = product.reviews && product.reviews.length > 0
-    ? (product.reviews.reduce((sum, review) => sum + review.rating, 0) / product.reviews.length).toFixed(1)
-    : product.rating?.toFixed(1) || '0.0';
+    ? (product.reviews.reduce((sum, review) => sum + review.rating, 0) / product.reviews.length)
+    : product.rating || 0;
   const numberOfReviews = product.reviews ? product.reviews.length : 0;
 
   return (
@@ -42,13 +43,12 @@ export default function ProductDetail() {
           <Text className="text-2xl font-bold mb-2">{product.name}</Text>
 
           <View className="flex-row items-center mb-2">
-            <Ionicons name="star" size={18} color={colors.warning} />
-            <Text className="mr-1 text-lg text-warning font-medium">
-              {averageRating}
-            </Text>
-            {numberOfReviews > 0 && (
-              <Text className="text-base text-neutral-500">({numberOfReviews} تقييم)</Text>
-            )}
+            <StarRating
+              rating={averageRating}
+              size={18}
+              showNumber={true}
+              totalReviews={numberOfReviews}
+            />
           </View>
 
           <Text className="text-lg text-green-600 font-semibold mb-4">
@@ -80,8 +80,7 @@ export default function ProductDetail() {
               {product.reviews?.map((review) => (
                 <View key={review.id} className="bg-gray-50 p-3 rounded-lg mb-3">
                   <View className="flex-row items-center mb-1">
-                    <Ionicons name="star" size={14} color={colors.warning} />
-                    <Text className="mr-1 text-sm font-semibold">{review.rating}.0</Text>
+                    <StarRating rating={review.rating} size={14} showNumber={true} />
                     <Text className="text-sm text-neutral-500">بواسطة {review.reviewerName}</Text>
                   </View>
                   <Text className="text-gray-700 mb-1">{review.comment}</Text>

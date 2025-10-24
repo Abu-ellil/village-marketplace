@@ -1,15 +1,40 @@
 import React, { useEffect, useState, useCallback } from "react";
-import { Slot } from "expo-router";
+import { Slot, Redirect } from "expo-router";
 import { CartProvider } from "../context/CartContext";
 import { ToastProvider } from "../context/ToastContext";
 import { OrdersProvider } from "../context/OrdersContext";
-import * as Font from "expo-font";
-import * as SplashScreen from "expo-splash-screen";
+import { AuthProvider, useAuth } from "../context/AuthContext";
+import *s Font from "expo-font";
+import *s SplashScreen from "expo-splash-screen";
 import { I18nManager, View } from "react-native";
 
 SplashScreen.preventAutoHideAsync().catch(() => {
   /* ignore if already prevented */
 });
+
+function AppContent() {
+  const { user, isLoading } = useAuth();
+
+  // Redirect to login if not authenticated and not loading
+  if (!user && !isLoading) {
+    return <Redirect href="/login" />;
+  }
+
+  // Show splash screen while authentication state is loading
+  if (isLoading) {
+    return <View style={{ flex: 1, backgroundColor: '#fff' }} />;
+  }
+
+  return (
+    <CartProvider>
+      <OrdersProvider>
+        <ToastProvider>
+          <Slot />
+        </ToastProvider>
+      </OrdersProvider>
+    </CartProvider>
+  );
+}
 
 export default function Layout() {
   const [ready, setReady] = useState(false);
@@ -49,14 +74,10 @@ export default function Layout() {
   }
 
   return (
-    <CartProvider>
-      <OrdersProvider>
-        <ToastProvider>
-          <View className="flex-1 bg-neutral-50" onLayout={onLayoutRootView}>
-            <Slot />
-          </View>
-        </ToastProvider>
-      </OrdersProvider>
-    </CartProvider>
+    <AuthProvider>
+      <View className="flex-1 bg-neutral-50" onLayout={onLayoutRootView}>
+        <AppContent />
+      </View>
+    </AuthProvider>
   );
 }

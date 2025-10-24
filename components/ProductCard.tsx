@@ -8,6 +8,7 @@ import Card from './ui/Card';
 import ImageWithPlaceholder from './ui/ImageWithPlaceholder';
 import { colors } from '../theme/colors';
 import { useRouter } from 'expo-router';
+import StarRating from './ui/StarRating';
 
 interface ProductCardProps {
   product: Product;
@@ -34,8 +35,8 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, onAddToCart }) => {
       product.image.startsWith('data:'));
 
   const averageRating = product.reviews && product.reviews.length > 0
-    ? (product.reviews.reduce((sum, review) => sum + review.rating, 0) / product.reviews.length).toFixed(1)
-    : product.rating?.toFixed(1) || '0.0';
+    ? (product.reviews.reduce((sum, review) => sum + review.rating, 0) / product.reviews.length)
+    : product.rating || 0;
   const numberOfReviews = product.reviews ? product.reviews.length : 0;
 
   return (
@@ -68,15 +69,12 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, onAddToCart }) => {
           </Text>
 
           <View className="flex-row items-center justify-between mb-2">
-            <View className="flex-row items-center">
-              <Ionicons name="star" size={14} color={colors.warning} />
-              <Text className="mr-1 text-sm text-warning font-medium">
-                {averageRating}
-              </Text>
-              {numberOfReviews > 0 && (
-                <Text className="text-sm text-neutral-500">({numberOfReviews})</Text>
-              )}
-            </View>
+            <StarRating
+              rating={averageRating}
+              size={14}
+              showNumber={true}
+              totalReviews={numberOfReviews}
+            />
 
             <View className="flex-row items-center">
               <Ionicons
