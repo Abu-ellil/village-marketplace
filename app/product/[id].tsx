@@ -4,7 +4,7 @@ import { useLocalSearchParams, useRouter } from "expo-router";
 import Header from "../../components/Header";
 import Button from "../../components/ui/Button";
 import { useCart } from "../../context/CartContext";
-import { formatCurrency } = "../../utils/helpers";
+import { formatCurrency } from "../../utils/helpers";
 import ImageWithPlaceholder from "../../components/ui/ImageWithPlaceholder";
 import { Ionicons } from "@expo/vector-icons";
 import { colors } from "../../theme/colors";

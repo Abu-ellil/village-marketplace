@@ -35,16 +35,21 @@ export default function Market() {
 
   const fetchProductsAndServices = React.useCallback(async () => {
     setIsLoading(true);
+    console.log("Market - Fetching products and services...");
     try {
       const fetchedProducts = await api.getProducts();
       const fetchedServices = await api.getServices();
       setProducts(fetchedProducts);
       setServices(fetchedServices);
+      console.log("Market - Fetched products:", fetchedProducts.length);
+      console.log("Market - Fetched services:", fetchedServices.length);
     } catch (err) {
       console.error('API fetch failed', err);
       // Fallback to mock data or display an error message
+      // For now, we'll show an empty state but still render the UI
     } finally {
       setIsLoading(false);
+      console.log("Market - Finished fetching, isLoading set to false.");
     }
   }, []);
 
@@ -52,13 +57,17 @@ export default function Market() {
     fetchProductsAndServices();
   }, [fetchProductsAndServices]);
 
+  console.log("Market - Current isLoading:", isLoading);
+  console.log("Market - Current products count:", products.length);
+  console.log("Market - Current services count:", services.length);
+
   // Build unique sellers list with optional image for each seller
   const sellerMap = new Map<string, string | null>();
   products.forEach((p) => {
     if (p.seller) {
       // prefer the first seen sellerImage for this seller
       if (!sellerMap.has(p.seller))
-        sellerMap.set(p.seller, p.sellerImage || null);
+        sellerMap.set(p.seller, p.image || null);
     }
   });
   const sellers = Array.from(sellerMap.entries()).map(([name, image]) => ({
@@ -112,6 +121,8 @@ export default function Market() {
             />
           }
         >
+          <Text style={{ padding: 20, fontSize: 24, fontWeight: 'bold' }}>Test Text: If you see this, the app is rendering!</Text>
+
           {/* Products Section */}
           <View className="px-4">
             <View className="flex-row items-center justify-between py-3">
