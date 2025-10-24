@@ -7,6 +7,7 @@ import DeliveryMap from "../components/DeliveryMap";
 import { useOrders } from "../context/OrdersContext";
 import { makeCall } from "../utils/helpers";
 import { OrderStatus } from "../types/Order";
+import { useRouter } from "expo-router";
 
 const STATUS_COLORS: Record<OrderStatus, string> = {
   pending: "text-yellow-600",
@@ -27,6 +28,7 @@ const STATUS_LABELS: Record<OrderStatus, string> = {
 export default function Orders() {
   const { orders } = useOrders();
   const [locationPermission, setLocationPermission] = useState(false);
+  const router = useRouter();
 
   useEffect(() => {
     (async () => {
@@ -49,80 +51,85 @@ export default function Orders() {
           <Text>لا توجد طلبات حالياً.</Text>
         ) : (
           orders.map((order) => (
-            <View
+            <TouchableOpacity
               key={order.id}
-              className="bg-white rounded-lg p-4 mb-3 shadow"
+              onPress={() => router.push(`/order/${order.id}`)}
+              activeOpacity={0.8}
             >
-              <View className="flex-row items-center justify-between mb-2">
-                <Text className="font-bold">طلب #{order.id}</Text>
-                <Text className="text-sm text-neutral-500">
-                  {new Date(order.createdAt).toLocaleString("ar-EG")}
-                </Text>
-              </View>
+              <View className="bg-white rounded-lg p-4 mb-3 shadow">
+                <View className="flex-row items-center justify-between mb-2">
+                  <Text className="font-bold">طلب #{order.id}</Text>
+                  <Text className="text-sm text-neutral-500">
+                    {new Date(order.createdAt).toLocaleString("ar-EG")}
+                  </Text>
+                </View>
 
-              {/* Map view for active deliveries */}
-              {order.status === "on_way" &&
-                order.driverLocation &&
-                locationPermission && (
-                  <DeliveryMap
-                    order={order}
-                    driverLocation={order.driverLocation}
-                  />
-                )}
+                {/* Map view for active deliveries */}
+                {order.status === "on_way" &&
+                  order.driverLocation &&
+                  locationPermission && (
+                    <DeliveryMap
+                      order={order}
+                      driverLocation={order.driverLocation}
+                    />
+                  )}
 
-              {/* Driver info */}
-              {order.driverName && (
-                <View className="bg-blue-50 rounded-lg p-3 mb-3">
-                  <View className="flex-row items-center justify-between">
-                    <View className="flex-row items-center">
-                      <Ionicons name="person" size={16} color="#2563eb" />
-                      <Text className="mr-2 text-blue-600">
-                        {order.driverName}
-                      </Text>
+                {/* Driver info */}
+                {order.driverName && (
+                  <View className="bg-blue-50 rounded-lg p-3 mb-3">
+                    <View className="flex-row items-center justify-between">
+                      <View className="flex-row items-center">
+                        <Ionicons name="person" size={16} color="#2563eb" />
+                        <Text className="mr-2 text-blue-600">
+                          {order.driverName}
+                        </Text>
+                      </View>
+                      {order.driverPhone && (
+                        <TouchableOpacity
+                          onPress={() => handleDriverCall(order.driverPhone)}
+                          className="flex-row items-center"
+                        >
+                          <Ionicons name="call" size={16} color="#2563eb" />
+                          <Text className="mr-2 text-blue-600">
+                            اتصل بالسائق
+                          </Text>
+                        </TouchableOpacity>
+                      )}
                     </View>
-                    {order.driverPhone && (
-                      <TouchableOpacity
-                        onPress={() => handleDriverCall(order.driverPhone)}
-                        className="flex-row items-center"
-                      >
-                        <Ionicons name="call" size={16} color="#2563eb" />
-                        <Text className="mr-2 text-blue-600">اتصل بالسائق</Text>
-                      </TouchableOpacity>
+                    {order.estimatedDeliveryTime && (
+                      <Text className="text-sm text-blue-600 mt-1">
+                        وقت التوصيل المتوقع: {order.estimatedDeliveryTime}
+                      </Text>
                     )}
                   </View>
-                  {order.estimatedDeliveryTime && (
-                    <Text className="text-sm text-blue-600 mt-1">
-                      وقت التوصيل المتوقع: {order.estimatedDeliveryTime}
-                    </Text>
-                  )}
+                )}
+
+                {/* Order items */}
+                <View className="mb-2">
+                  {order.items.map((item, idx) => (
+                    <View
+                      key={`${order.id}-${idx}`}
+                      className="flex-row justify-between"
+                    >
+                      <Text className="text-sm">{item.product?.name}</Text>
+                      <Text className="text-sm text-green-600">
+                        {(item.product?.price || 0) * item.quantity} جنيه
+                      </Text>
+                    </View>
+                  ))}
                 </View>
-              )}
 
-              {/* Order items */}
-              <View className="mb-2">
-                {order.items.map((item, idx) => (
-                  <View
-                    key={`${order.id}-${idx}`}
-                    className="flex-row justify-between"
-                  >
-                    <Text className="text-sm">{item.product?.name}</Text>
-                    <Text className="text-sm text-green-600">
-                      {(item.product?.price || 0) * item.quantity} جنيه
-                    </Text>
-                  </View>
-                ))}
+                {/* Order summary */}
+                <View className="flex-row items-center justify-between mt-3 pt-3 border-t border-neutral-100">
+                  <Text className="font-bold text-green-600">
+                    المجموع: {order.total} جنيه
+                  </Text>
+                  <Text className={`text-sm ${STATUS_COLORS[order.status]}`}>
+                    {STATUS_LABELS[order.status]}
+                  </Text>
+                </View>
               </View>
-
-              {/* Order summary */}
-              <View className="flex-row items-center justify-between mt-3 pt-3 border-t border-neutral-100">
-                <Text className="font-bold text-green-600">
-                  المجموع: {order.total} جنيه
-                </Text>
-                <Text className={`text-sm ${STATUS_COLORS[order.status]}`}>
-                  {STATUS_LABELS[order.status]}
-                </Text>
-              </View>
-            </View>
+            </TouchableOpacity>
           ))
         )}
       </ScrollView>

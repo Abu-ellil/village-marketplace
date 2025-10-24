@@ -1,45 +1,41 @@
 import React from "react";
-import { View, Text, ScrollView } from "react-native";
-import { useLocalSearchParams, useRouter } from "expo-router";
-import { ITEMS as products } from "../../data/mockData";
+import { View, Text, ScrollView, Linking } from "react-native";
+import { useLocalSearchParams } from "expo-router";
+import { SERVICES as services } from "../../data/mockData";
 import Header from "../../components/Header";
 import Button from "../../components/ui/Button";
-import { useCart } from "../../context/CartContext";
-import { formatCurrency } from "../../utils/helpers";
-import ImageWithPlaceholder from "../../components/ui/ImageWithPlaceholder";
 import { Ionicons } from "@expo/vector-icons";
 import { colors } from "../../theme/colors";
 
-export default function ProductDetail() {
+export default function ServiceDetail() {
   const { id } = useLocalSearchParams();
-  const router = useRouter();
-  const { addToCart } = useCart();
-  const product = products.find((p) => String(p.id) === id);
+  const service = services.find((s) => String(s.id) === id);
 
-  if (!product) {
+  if (!service) {
     return (
       <View>
         <Header />
-        <Text className="p-4 text-center">المنتج غير موجود</Text>
+        <Text className="p-4 text-center">الخدمة غير موجودة</Text>
       </View>
     );
   }
 
-  const averageRating = product.reviews && product.reviews.length > 0
-    ? (product.reviews.reduce((sum, review) => sum + review.rating, 0) / product.reviews.length).toFixed(1)
-    : product.rating?.toFixed(1) || '0.0';
-  const numberOfReviews = product.reviews ? product.reviews.length : 0;
+  const makeCall = (phoneNumber?: string) => {
+    if (!phoneNumber) return;
+    Linking.openURL(`tel:${phoneNumber}`);
+  };
+
+  const averageRating = service.reviews && service.reviews.length > 0
+    ? (service.reviews.reduce((sum, review) => sum + review.rating, 0) / service.reviews.length).toFixed(1)
+    : service.rating?.toFixed(1) || '0.0';
+  const numberOfReviews = service.reviews ? service.reviews.length : 0;
 
   return (
     <View className="flex-1 bg-white">
       <Header />
       <ScrollView>
-        <ImageWithPlaceholder
-          className="w-full h-64"
-          source={{ uri: product.image }}
-        />
         <View className="p-4">
-          <Text className="text-2xl font-bold mb-2">{product.name}</Text>
+          <Text className="text-2xl font-bold mb-2">{service.name}</Text>
 
           <View className="flex-row items-center mb-2">
             <Ionicons name="star" size={18} color={colors.warning} />
@@ -51,33 +47,40 @@ export default function ProductDetail() {
             )}
           </View>
 
-          <Text className="text-lg text-green-600 font-semibold mb-4">
-            {formatCurrency(product.price)} / {product.unit}
-          </Text>
           <Text className="text-base text-gray-700 mb-4">
-            {product.description}
+            {service.description}
           </Text>
 
-          {/* Seller Info */}
+          {/* Provider Info */}
           <View className="border-t border-gray-200 pt-4">
-            <Text className="text-lg font-semibold mb-2">معلومات البائع</Text>
+            <Text className="text-lg font-semibold mb-2">معلومات مقدم الخدمة</Text>
             <View className="flex-row items-center">
-              <ImageWithPlaceholder
-                className="w-12 h-12 rounded-full mr-4"
-                source={{ uri: product.sellerImage }}
-              />
+              <View className="w-12 h-12 rounded-full bg-primary/10 items-center justify-center mr-4">
+                <Text className="text-xl">{service.icon || "🛠"}</Text>
+              </View>
               <View>
-                <Text className="text-base font-semibold">{product.seller}</Text>
-                <Text className="text-sm text-gray-500">{product.village}</Text>
+                <Text className="text-base font-semibold">{service.provider}</Text>
+                <Text className="text-sm text-gray-500">{service.village}</Text>
               </View>
             </View>
+            <Button
+              accessibilityLabel={`Call ${service.provider}`}
+              onPress={() => makeCall(service.phone)}
+              variant="secondary"
+              className="mt-4 w-full"
+            >
+              <View className="flex-row items-center justify-center">
+                <Ionicons name="call" size={18} color="white" />
+                <Text className="text-white font-bold mr-2">اتصال بمقدم الخدمة</Text>
+              </View>
+            </Button>
           </View>
 
           {/* Reviews Section */}
           {numberOfReviews > 0 && (
             <View className="border-t border-gray-200 pt-4 mt-4">
               <Text className="text-lg font-semibold mb-3">التقييمات ({numberOfReviews})</Text>
-              {product.reviews?.map((review) => (
+              {service.reviews?.map((review) => (
                 <View key={review.id} className="bg-gray-50 p-3 rounded-lg mb-3">
                   <View className="flex-row items-center mb-1">
                     <Ionicons name="star" size={14} color={colors.warning} />
@@ -94,15 +97,6 @@ export default function ProductDetail() {
           )}
         </View>
       </ScrollView>
-      <View className="p-4 border-t border-gray-200 bg-white">
-        <Button
-          onPress={() => addToCart(product)}
-          variant="primary"
-          className="w-full"
-        >
-          أضف إلى السلة
-        </Button>
-      </View>
     </View>
   );
 }

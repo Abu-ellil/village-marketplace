@@ -27,11 +27,15 @@ export const ITEMS = [
     sellerImage: "https://picsum.photos/seed/seller-mohamed/100/100",
     village: "كفر الشيخ",
     phone: "01012345678",
-    rating: 4.8,
+    rating: 4.5,
     // sample remote image (picsum) to demonstrate ImageWithPlaceholder
     image: "https://picsum.photos/seed/tomato/600/600",
     inStock: true,
     description: "طماطم طازجة من المزرعة مباشرة",
+    reviews: [
+      { id: "r1", rating: 5, comment: "طماطم ممتازة و طازجة جداً!", reviewerName: "أحمد محمود", date: "2023-10-20T10:00:00Z" },
+      { id: "r2", rating: 4, comment: "جودة جيدة وسعر مناسب.", reviewerName: "سارة علي", date: "2023-10-21T11:30:00Z" },
+    ],
   },
   {
     id: 2,
@@ -43,10 +47,15 @@ export const ITEMS = [
     sellerImage: "https://picsum.photos/seed/seller-fatma/100/100",
     village: "المنيا",
     phone: "01098765432",
-    rating: 4.9,
+    rating: 4.8,
     image: "https://picsum.photos/seed/eggs/600/600",
     inStock: true,
     description: "بيض طازج من دجاج بلدي",
+    reviews: [
+      { id: "r3", rating: 5, comment: "بيض بلدي أصلي وطعم رائع.", reviewerName: "منى سعيد", date: "2023-10-19T09:00:00Z" },
+      { id: "r4", rating: 4, comment: "توصيل سريع والبيض سليم.", reviewerName: "خالد إبراهيم", date: "2023-10-22T14:00:00Z" },
+      { id: "r5", rating: 5, comment: "أفضل بيض اشتريته حتى الآن.", reviewerName: "نورا كمال", date: "2023-10-23T16:00:00Z" },
+    ],
   },
   {
     id: 3,
@@ -149,11 +158,15 @@ export const SERVICES = [
     providerImage: "https://picsum.photos/seed/provider-kareem/100/100",
     village: "كفر الشيخ",
     phone: "01012345678",
-    rating: 4.7,
+    rating: 4.0,
     price: 10,
     icon: "🚗",
     available: true,
     description: "توصيل سريع لجميع أنحاء القرية",
+    reviews: [
+      { id: "sr1", rating: 4, comment: "خدمة توصيل ممتازة وسريعة.", reviewerName: "فاطمة الزهراء", date: "2023-10-18T08:00:00Z" },
+      { id: "sr2", rating: 4, comment: "السائق محترم والأسعار معقولة.", reviewerName: "يوسف أحمد", date: "2023-10-20T13:00:00Z" },
+    ],
   },
   {
     id: 2,
@@ -163,11 +176,15 @@ export const SERVICES = [
     providerImage: "https://picsum.photos/seed/provider-abdullah/100/100",
     village: "المنيا",
     phone: "01098765432",
-    rating: 4.9,
+    rating: 4.5,
     price: 50,
     icon: "🔧",
     available: true,
     description: "صيانة وإصلاح جميع أعمال السباكة",
+    reviews: [
+      { id: "sr3", rating: 5, comment: "سباك ماهر جداً وحل المشكلة بسرعة.", reviewerName: "زينب محمد", date: "2023-10-21T10:00:00Z" },
+      { id: "sr4", rating: 4, comment: "شغل نظيف وسعر كويس.", reviewerName: "علياء حسام", date: "2023-10-22T15:00:00Z" },
+    ],
   },
   {
     id: 3,
