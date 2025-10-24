@@ -5,6 +5,7 @@ import SearchBar from "../components/SearchBar";
 import CategoryFilter from "../components/CategoryFilter";
 import ProductCard from "../components/ProductCard";
 import ServiceCard from "../components/ServiceCard";
+import ShopBar from "../components/ShopBar";
 import BottomNav from "../components/BottomNav";
 import EmptyState from "../components/ui/EmptyState";
 import {
@@ -24,13 +25,27 @@ export default function Market() {
   const [selectedCategory, setSelectedCategory] = React.useState<string | null>(
     null
   );
+  const [selectedSeller, setSelectedSeller] = React.useState<string | null>(
+    null
+  );
   const [isLoading, setIsLoading] = React.useState(true);
   const [isRefreshing, setIsRefreshing] = React.useState(false);
   const { addToCart } = useCart();
 
+  // Build unique sellers list with optional image for each seller
+  const sellerMap = new Map<string, string | null>();
+  products.forEach((p) => {
+    if (p.seller) {
+      // prefer the first seen sellerImage for this seller
+      if (!sellerMap.has(p.seller)) sellerMap.set(p.seller, p.sellerImage || null);
+    }
+  });
+  const sellers = Array.from(sellerMap.entries()).map(([name, image]) => ({ name, image }));
+
   const filteredProducts = products.filter(
     (p) =>
       (!selectedCategory || p.category === selectedCategory) &&
+      (!selectedSeller || p.seller === selectedSeller) &&
       (p.name.toLowerCase().includes(query.toLowerCase()) ||
         p.seller.toLowerCase().includes(query.toLowerCase()))
   );
@@ -63,9 +78,14 @@ export default function Market() {
             setSelectedCategory(id === selectedCategory ? null : id)
           }
         />
+        <ShopBar
+          sellers={sellers}
+          selectedSeller={selectedSeller}
+          onSelectSeller={(s) => setSelectedSeller(s)}
+        />
 
         <ScrollView
-          className="flex-1"
+          className="flex-"
           contentContainerStyle={{
             paddingBottom: 80, // Space for bottom nav
           }}

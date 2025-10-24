@@ -22,37 +22,43 @@ const CategoryFilter: React.FC<CategoryFilterProps> = ({
       contentContainerStyle={{
         paddingHorizontal: 16,
         paddingVertical: 8,
-        gap: 8,
-        height:56,
       }}
     >
       {categories.map((category) => {
         const isSelected = selectedCategory === category.id;
+
         return (
           <TouchableOpacity
             key={category.id}
             onPress={() => onSelectCategory(category.id)}
-            className={`
-              px-4 py-2.5 rounded-full flex-row items-center
-              ${
-                isSelected
-                  ? "bg-green-400 shadow-sm "
-                  : "bg-white rounded-full border border-neutral-200"
-              }
-            `}
+            className={`px-4 rounded-full flex-row items-center ${
+              isSelected ? "bg-green-400" : "bg-white border border-neutral-200"
+            }`}
             style={{
+              height: 44,
+              minWidth: 80,
+              paddingHorizontal: 14,
+              justifyContent: "center",
+              marginRight: 8,
               shadowColor: colors.primary.DEFAULT,
-              shadowOpacity: isSelected ? 0.2 : 0,
-              shadowRadius: 4,
+              shadowOpacity: isSelected ? 0.18 : 0,
+              shadowRadius: isSelected ? 6 : 0,
               shadowOffset: { width: 0, height: 2 },
               elevation: isSelected ? 3 : 0,
             }}
+            accessibilityRole="button"
+            accessibilityState={{ selected: isSelected }}
           >
-            <Text className="mr-2 text-lg">{category.icon}</Text>
+            <Text className="ml-2 text-lg" style={{ textAlign: "center" }}>
+              {category.icon}
+            </Text>
+
             <Text
               className={`${
                 isSelected ? "text-white" : "text-neutral-600"
               } font-medium`}
+              numberOfLines={1}
+              style={{ maxWidth: 120, textAlign: "right" }}
             >
               {category.name}
             </Text>

@@ -3,6 +3,7 @@ import { View, Text, TouchableOpacity, Linking } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { Service } from "../types/Service";
 import Button from "./ui/Button";
+import Card from "./ui/Card";
 import { colors } from "../theme/colors";
 
 interface ServiceCardProps {
@@ -18,16 +19,7 @@ const ServiceCard: React.FC<ServiceCardProps> = ({ service, onContact }) => {
   };
 
   return (
-    <View
-      className="bg-white rounded-2xl overflow-hidden"
-      style={{
-        shadowColor: colors.neutral[900],
-        shadowOpacity: 0.1,
-        shadowRadius: 8,
-        shadowOffset: { width: 0, height: 2 },
-        elevation: 3,
-      }}
-    >
+    <Card>
       <View className="p-4">
         {/* Service Icon/Category */}
         <View className="mb-3 flex-row items-center">
@@ -84,7 +76,7 @@ const ServiceCard: React.FC<ServiceCardProps> = ({ service, onContact }) => {
           </Button>
         </View>
       </View>
-    </View>
+    </Card>
   );
 };
 

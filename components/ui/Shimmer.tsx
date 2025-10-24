@@ -36,25 +36,26 @@ export default function Shimmer({
     ).start();
   }, []);
 
-  const translateX = animatedValue.interpolate({
-    inputRange: [0, 1],
-    outputRange: [-width, width],
+  const opacity = animatedValue.interpolate({
+    inputRange: [0, 0.5, 1],
+    outputRange: [0.3, 0.6, 0.3],
   });
 
+  const containerStyle: any = {
+    height,
+    borderRadius,
+    backgroundColor: colors.neutral[200],
+  };
+  if (typeof width === "number") containerStyle.width = width;
+  else if (typeof width === "string" && width !== "100%")
+    containerStyle.width = width;
+
   return (
-    <View
-      className={`overflow-hidden ${className}`}
-      style={[
-        { width, height, borderRadius, backgroundColor: colors.neutral[200] },
-      ]}
-    >
+    <View className={`overflow-hidden ${className}`} style={containerStyle}>
       <Animated.View
         style={[
           StyleSheet.absoluteFill,
-          {
-            transform: [{ translateX }],
-            backgroundColor: colors.neutral[100],
-          },
+          { backgroundColor: colors.neutral[100], opacity },
           styles.shimmer,
         ]}
       />

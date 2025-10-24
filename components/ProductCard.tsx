@@ -4,6 +4,8 @@ import { Ionicons } from "@expo/vector-icons";
 import { Product } from "../types/Product";
 import { useToast } from "../context/ToastContext";
 import Button from "./ui/Button";
+import Card from "./ui/Card";
+import ImageWithPlaceholder from "./ui/ImageWithPlaceholder";
 import { colors } from "../theme/colors";
 
 interface ProductCardProps {
@@ -23,11 +25,21 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, onAddToCart }) => {
     showToast("تمت الإضافة إلى السلة");
   };
 
+  const isImageUrl =
+    typeof product.image === "string" &&
+    (product.image.startsWith("http") ||
+      product.image.startsWith("//") ||
+      product.image.startsWith("data:"));
+
   return (
     <Card noPadding>
-      <View className="aspect-square bg-neutral-100 items-center justify-center">
-        <Text className="text-6xl">{product.image}</Text>
-      </View>
+      {isImageUrl ? (
+        <ImageWithPlaceholder uri={String(product.image)} height={160} />
+      ) : (
+        <View className="aspect-square bg-neutral-100 items-center justify-center">
+          <Text className="text-6xl">{product.image || "🧺"}</Text>
+        </View>
+      )}
 
       <View className="p-3">
         <Text
@@ -90,7 +102,7 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, onAddToCart }) => {
           </Button>
         </View>
       </View>
-    </View>
+    </Card>
   );
 };
 
