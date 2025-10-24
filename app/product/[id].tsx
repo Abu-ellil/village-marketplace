@@ -1,21 +1,48 @@
-import React from "react";
-import { View, Text, ScrollView } from "react-native";
+import React, { useEffect, useState } from "react";
+import { View, Text, ScrollView, ActivityIndicator } from "react-native";
 import { useLocalSearchParams, useRouter } from "expo-router";
-import { ITEMS as products } from "../../data/mockData";
 import Header from "../../components/Header";
 import Button from "../../components/ui/Button";
 import { useCart } from "../../context/CartContext";
-import { formatCurrency } from "../../utils/helpers";
+import { formatCurrency } = "../../utils/helpers";
 import ImageWithPlaceholder from "../../components/ui/ImageWithPlaceholder";
 import { Ionicons } from "@expo/vector-icons";
 import { colors } from "../../theme/colors";
 import StarRating from "../../components/ui/StarRating";
+import api from "../../app/lib/api";
+import { Product } from "../../types/Product";
 
 export default function ProductDetail() {
   const { id } = useLocalSearchParams();
   const router = useRouter();
   const { addToCart } = useCart();
-  const product = products.find((p) => String(p.id) === id);
+  const [product, setProduct] = useState<Product | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchProduct = async () => {
+      if (!id) return;
+      setIsLoading(true);
+      try {
+        const fetchedProduct = await api.getProductById(String(id));
+        setProduct(fetchedProduct);
+      } catch (error) {
+        console.error("Failed to fetch product", error);
+        setProduct(null);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    fetchProduct();
+  }, [id]);
+
+  if (isLoading) {
+    return (
+      <View className="flex-1 justify-center items-center">
+        <ActivityIndicator size="large" color={colors.primary.DEFAULT} />
+      </View>
+    );
+  }
 
   if (!product) {
     return (

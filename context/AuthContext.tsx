@@ -1,10 +1,13 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import axios from 'axios';
+import { API_BASE_URL } from '../utils/config';
 
 interface User {
   id: string;
   email: string;
   name: string;
+  token: string; // JWT token
 }
 
 interface AuthContextType {
@@ -18,6 +21,21 @@ interface AuthContextType {
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 const USER_STORAGE_KEY = 'village_marketplace_user';
+const TOKEN_STORAGE_KEY = 'village_marketplace_token';
+
+// Configure axios to include the token in requests
+axios.interceptors.request.use(
+  async (config) => {
+    const token = await AsyncStorage.getItem(TOKEN_STORAGE_KEY);
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
+    }
+    return config;
+  },
+  (error) => {
+    return Promise.reject(error);
+  }
+);
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
@@ -27,11 +45,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const loadUser = async () => {
       try {
         const storedUser = await AsyncStorage.getItem(USER_STORAGE_KEY);
-        if (storedUser) {
-          setUser(JSON.parse(storedUser));
+        const storedToken = await AsyncStorage.getItem(TOKEN_STORAGE_KEY);
+        if (storedUser && storedToken) {
+          const parsedUser = JSON.parse(storedUser);
+          setUser({ ...parsedUser, token: storedToken });
         }
       } catch (e) {
-        console.error('Failed to load user from storage', e);
+        console.error('Failed to load user/token from storage', e);
       } finally {
         setIsLoading(false);
       }
@@ -42,17 +62,16 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const login = async (email: string, password: string): Promise<boolean> => {
     setIsLoading(true);
     try {
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      if (email === 'test@example.com' && password === 'password') {
-        const dummyUser: User = { id: '1', email, name: 'Test User' };
-        await AsyncStorage.setItem(USER_STORAGE_KEY, JSON.stringify(dummyUser));
-        setUser(dummyUser);
-        return true;
-      }
-      return false;
-    } catch (e) {
-      console.error('Login failed', e);
+      const response = await axios.post(`${API_BASE_URL}/auth/login`, { email, password });
+      const { token, user: userData } = response.data;
+      
+      const newUser: User = { ...userData, token };
+      await AsyncStorage.setItem(USER_STORAGE_KEY, JSON.stringify(userData));
+      await AsyncStorage.setItem(TOKEN_STORAGE_KEY, token);
+      setUser(newUser);
+      return true;
+    } catch (e: any) {
+      console.error('Login failed', e.response?.data || e.message);
       return false;
     } finally {
       setIsLoading(false);
@@ -62,15 +81,16 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const register = async (name: string, email: string, password: string): Promise<boolean> => {
     setIsLoading(true);
     try {
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      // In a real app, you'd check if email already exists and create a new user
-      const newUser: User = { id: String(Date.now()), email, name };
-      await AsyncStorage.setItem(USER_STORAGE_KEY, JSON.stringify(newUser));
+      const response = await axios.post(`${API_BASE_URL}/auth/register`, { name, email, password });
+      const { token, user: userData } = response.data;
+
+      const newUser: User = { ...userData, token };
+      await AsyncStorage.setItem(USER_STORAGE_KEY, JSON.stringify(userData));
+      await AsyncStorage.setItem(TOKEN_STORAGE_KEY, token);
       setUser(newUser);
       return true;
-    } catch (e) {
-      console.error('Registration failed', e);
+    } catch (e: any) {
+      console.error('Registration failed', e.response?.data || e.message);
       return false;
     } finally {
       setIsLoading(false);
@@ -81,6 +101,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setIsLoading(true);
     try {
       await AsyncStorage.removeItem(USER_STORAGE_KEY);
+      await AsyncStorage.removeItem(TOKEN_STORAGE_KEY);
       setUser(null);
     } catch (e) {
       console.error('Logout failed', e);

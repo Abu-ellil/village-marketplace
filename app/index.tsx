@@ -13,12 +13,11 @@ import {
   ServiceCardSkeleton,
 } from "../components/ui/CardSkeletons";
 import { colors } from "../theme/colors";
-import {
-  CATEGORIES,
-  ITEMS as products,
-  SERVICES as services,
-} from "../data/mockData";
+import { CATEGORIES } from "../data/mockData";
+import api from "./lib/api";
 import { useCart } from "../context/CartContext";
+import { Product } from "../types/Product";
+import { Service } from "../types/Service";
 
 export default function Market() {
   const [query, setQuery] = React.useState("");
@@ -31,39 +30,55 @@ export default function Market() {
   const [isLoading, setIsLoading] = React.useState(true);
   const [isRefreshing, setIsRefreshing] = React.useState(false);
   const { addToCart } = useCart();
+  const [products, setProducts] = React.useState<Product[]>([]);
+  const [services, setServices] = React.useState<Service[]>([]);
+
+  const fetchProductsAndServices = React.useCallback(async () => {
+    setIsLoading(true);
+    try {
+      const fetchedProducts = await api.getProducts();
+      const fetchedServices = await api.getServices();
+      setProducts(fetchedProducts);
+      setServices(fetchedServices);
+    } catch (err) {
+      console.error('API fetch failed', err);
+      // Fallback to mock data or display an error message
+    } finally {
+      setIsLoading(false);
+    }
+  }, []);
+
+  React.useEffect(() => {
+    fetchProductsAndServices();
+  }, [fetchProductsAndServices]);
 
   // Build unique sellers list with optional image for each seller
   const sellerMap = new Map<string, string | null>();
   products.forEach((p) => {
     if (p.seller) {
       // prefer the first seen sellerImage for this seller
-      if (!sellerMap.has(p.seller)) sellerMap.set(p.seller, p.sellerImage || null);
+      if (!sellerMap.has(p.seller))
+        sellerMap.set(p.seller, p.sellerImage || null);
     }
   });
-  const sellers = Array.from(sellerMap.entries()).map(([name, image]) => ({ name, image }));
+  const sellers = Array.from(sellerMap.entries()).map(([name, image]) => ({
+    name,
+    image,
+  }));
 
   const filteredProducts = products.filter(
     (p) =>
       (!selectedCategory || p.category === selectedCategory) &&
       (!selectedSeller || p.seller === selectedSeller) &&
       (p.name.toLowerCase().includes(query.toLowerCase()) ||
-        p.seller.toLowerCase().includes(query.toLowerCase()))
+        (p.seller && p.seller.toLowerCase().includes(query.toLowerCase())))
   );
-
-  // Simulate loading
-  React.useEffect(() => {
-    const timer = setTimeout(() => setIsLoading(false), 1500);
-    return () => clearTimeout(timer);
-  }, []);
 
   const handleRefresh = React.useCallback(async () => {
     setIsRefreshing(true);
-    // Simulate refresh
-    await new Promise<void>((resolve) => {
-      setTimeout(() => resolve(), 1500);
-    });
+    await fetchProductsAndServices();
     setIsRefreshing(false);
-  }, []);
+  }, [fetchProductsAndServices]);
 
   return (
     <View className="flex-1 bg-neutral-50">

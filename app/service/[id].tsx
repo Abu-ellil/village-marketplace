@@ -1,16 +1,43 @@
-import React from "react";
-import { View, Text, ScrollView, Linking } from "react-native";
+import React, { useEffect, useState } from "react";
+import { View, Text, ScrollView, Linking, ActivityIndicator } from "react-native";
 import { useLocalSearchParams } from "expo-router";
-import { SERVICES as services } from "../../data/mockData";
 import Header from "../../components/Header";
 import Button from "../../components/ui/Button";
 import { Ionicons } from "@expo/vector-icons";
 import { colors } from "../../theme/colors";
 import StarRating from "../../components/ui/StarRating";
+import api from "../../app/lib/api";
+import { Service } from "../../types/Service";
 
 export default function ServiceDetail() {
   const { id } = useLocalSearchParams();
-  const service = services.find((s) => String(s.id) === id);
+  const [service, setService] = useState<Service | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchService = async () => {
+      if (!id) return;
+      setIsLoading(true);
+      try {
+        const fetchedService = await api.getServiceById(String(id));
+        setService(fetchedService);
+      } catch (error) {
+        console.error("Failed to fetch service", error);
+        setService(null);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    fetchService();
+  }, [id]);
+
+  if (isLoading) {
+    return (
+      <View className="flex-1 justify-center items-center">
+        <ActivityIndicator size="large" color={colors.primary.DEFAULT} />
+      </View>
+    );
+  }
 
   if (!service) {
     return (
