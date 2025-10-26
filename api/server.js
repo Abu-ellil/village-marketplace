@@ -21,8 +21,8 @@ const { specs, swaggerUi, swaggerOptions } = require('./config/swagger');
 // Import middleware
 const errorHandler = require('./middleware/errorHandler');
 const notFound = require('./middleware/notFound');
-
-// Import routes
+  
+// Import routes 
 const authRoutes = require('./routes/auth');
 // Replace users routes import with safe require to avoid crash during testing
 let userRoutes; try { userRoutes = require('./routes/users'); } catch (e) { console.warn('Users routes module not found, skipping users routes.'); }
@@ -73,10 +73,19 @@ const corsOptions = {
     if (!origin) return callback(null, true);
     
     const allowedOrigins = [
+      'http://localhost:8081',
       'http://localhost:3000',
       'http://localhost:3001',
       'http://localhost:19006', // Expo dev server
-      'https://your-frontend-domain.vercel.app'
+      'https://your-frontend-domain.vercel.app',
+      'http://192.168.1.4:8081', // Local IP for mobile devices
+      'http://192.168.1.4:3000', // Local IP for mobile devices
+      'http://192.168.1.4:3001', // Local IP for mobile devices
+      'http://192.168.1.4:19006', // Local IP for Expo dev server
+      'http://10.0.2.2:19006', // Android emulator to access host machine
+      'http://10.0.2.2:8081', // Android emulator to access host machine
+      'http://10.0.2.2:3000', // Android emulator to access host machine
+      'http://10.0.2.2:3001' // Android emulator to access host machine
     ];
     
     if (allowedOrigins.indexOf(origin) !== -1) {
@@ -204,15 +213,10 @@ app.use(errorHandler);
 // Start server
 // Only start server if not in serverless environment
 if (process.env.NODE_ENV !== 'production' || !process.env.VERCEL) {
-  const PORT = process.env.PORT || 5000;
+  const PORT = 5000;
 
-  const server = app.listen(PORT, () => {
-    console.log(`🚀 ElSoug API Server running on port ${PORT}`);
-    console.log(`🌍 Environment: ${process.env.NODE_ENV}`);
-    console.log(`📚 API Documentation: http://localhost:${PORT}/api/${API_VERSION}/docs`);
-    console.log(`❤️ Health Check: http://localhost:${PORT}/health`);
-  });
 
+  const server = app.listen(5000, '0.0.0.0', () => console.log('API running on port 5000'));
   // Handle unhandled promise rejections
   process.on('unhandledRejection', (err, promise) => {
     console.log(`❌ Unhandled Rejection: ${err.message}`);

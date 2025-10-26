@@ -1,8 +1,8 @@
 import React from "react";
 import { View, ScrollView, Text } from "react-native";
-import Header from "../components/Header";
-import ServiceCard from "../components/ServiceCard";
-import { SERVICES } from "../data/mockData";
+import Header from "../../components/Header";
+import ServiceCard from "../../components/ServiceCard";
+import { SERVICES } from "../../data/mockData";
 
 export default function Services() {
   return (

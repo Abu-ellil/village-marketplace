@@ -6,7 +6,7 @@ import Button from "../../components/ui/Button";
 import { Ionicons } from "@expo/vector-icons";
 import { colors } from "../../theme/colors";
 import StarRating from "../../components/ui/StarRating";
-import api from "../../app/lib/api";
+import * as api from "../../app/lib/api";
 import { Service } from "../../types/Service";
 
 export default function ServiceDetail() {
@@ -55,7 +55,7 @@ export default function ServiceDetail() {
 
   const averageRating = service.reviews && service.reviews.length > 0
     ? (service.reviews.reduce((sum, review) => sum + review.rating, 0) / service.reviews.length)
-    : service.rating || 0;
+    : 0;
   const numberOfReviews = service.reviews ? service.reviews.length : 0;
 
   return (

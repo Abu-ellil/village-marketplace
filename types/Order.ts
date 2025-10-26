@@ -44,6 +44,13 @@ export interface Order {
     time: string;
     remainingMinutes: number;
   };
+  deliveryStatus?: 'Pending' | 'Out for Delivery' | 'Delivered' | 'Cancelled';
+  deliveryAddress?: {
+    latitude: number;
+    longitude: number;
+    address: string;
+  };
+  notifiedProximity?: boolean;
 }
 
 export default Order;

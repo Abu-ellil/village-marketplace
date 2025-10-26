@@ -2,7 +2,26 @@ import { create } from 'zustand';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Order, DriverLocation, DeliveryRoute } from '../types/Order';
 import MockDriverTrackingService from '../utils/MockDriverTrackingService';
+
 import { mockOrders } from '../data/mockOrders';
+
+// Function to safely handle notifications
+const scheduleProximityNotification = async (orderId: string) => {
+  try {
+    // Dynamically import expo-notifications to avoid issues in Expo Go
+    const { scheduleNotificationAsync } = await import('expo-notifications');
+    await scheduleNotificationAsync({
+      content: {
+        title: "Driver Nearby!",
+        body: `Your driver for order ${orderId} is almost there.`,
+      },
+      trigger: null,
+    });
+  } catch (e) {
+    // expo-notifications is not available in Expo Go with SDK 53
+    console.log("Notifications not available in Expo Go, skipping notification");
+  }
+};
 
 interface OrdersState {
   orders: Order[];
@@ -105,20 +124,23 @@ export const useOrdersStore = create<OrdersState>()((set, get) => ({
 
 // Effect to save orders whenever they change (excluding initial load)
 useOrdersStore.subscribe(
-  (state) => state.orders,
-  (orders) => {
-    AsyncStorage.setItem(ORDERS_STORAGE_KEY, JSON.stringify(orders)).catch((e) =>
-      console.warn('Failed to save orders', e)
-    );
-  },
-  { equalityFn: (a, b) => a === b } // Only trigger if the orders array reference changes
+  (state, prevState) => {
+    const orders = state.orders;
+    const prevOrders = prevState.orders;
+    if (orders !== prevOrders) {
+      AsyncStorage.setItem(ORDERS_STORAGE_KEY, JSON.stringify(orders)).catch((e) =>
+        console.warn('Failed to save orders', e)
+      );
+    }
+  }
 );
 
 // Effect to manage driver tracking subscriptions
 const trackingCallbacks = new Map<string, (location: DriverLocation, route?: DeliveryRoute) => void>();
 useOrdersStore.subscribe(
-  (state) => state.orders,
-  (orders) => {
+  (state, prevState) => {
+    const orders = state.orders;
+    const prevOrders = prevState.orders;
     const trackingService = MockDriverTrackingService.getInstance();
     const currentOrderIds = new Set(orders.map(o => o.id));
 
@@ -134,7 +156,7 @@ useOrdersStore.subscribe(
     orders.forEach(order => {
       if (order.status === "on_way" && !trackingCallbacks.has(order.id)) {
         const callback = (location: DriverLocation, route?: DeliveryRoute) => {
-          set((state) => {
+          useOrdersStore.setState((state) => {
             const updatedOrders = state.orders.map((o) =>
               o.id === order.id
                 ? {
@@ -159,6 +181,29 @@ useOrdersStore.subscribe(
         trackingService.startTracking(callback);
       }
     });
-  },
-  { fireImmediately: true } // Run on initial load
+
+    // Proximity notifications
+    orders.forEach(order => {
+      if (order.deliveryStatus === 'Out for Delivery' && order.driverLocation) {
+        // The callback for tracking is already handled above, no need to re-call here
+
+        // Check for proximity notification
+        if (order.driverLocation && order.deliveryAddress?.latitude && order.deliveryAddress?.longitude) {
+          const distance = MockDriverTrackingService.calculateDistance(
+            { latitude: order.driverLocation.latitude, longitude: order.driverLocation.longitude },
+            { latitude: order.deliveryAddress.latitude, longitude: order.deliveryAddress.longitude }
+          );
+
+          if (distance < 0.5 && !order.notifiedProximity) { // Less than 0.5 km
+            // Schedule proximity notification if available
+            scheduleProximityNotification(order.id);
+            // Mark order as notified to prevent repeated notifications
+            useOrdersStore.setState(state => ({
+              orders: state.orders.map(o => o.id === order.id ? { ...o, notifiedProximity: true } : o)
+            }));
+          }
+        }
+      }
+    });
+  }
 );

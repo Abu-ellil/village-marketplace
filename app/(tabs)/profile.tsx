@@ -1,9 +1,9 @@
 import React from 'react';
 import { View, Text, TouchableOpacity } from 'react-native';
-import { useAuth } from '../context/AuthContext';
-import Header from '../components/Header';
-import Button from '../components/ui/Button';
-import { useToast } from '../context/ToastContext';
+import { useAuth } from '../../context/AuthContext';
+import Header from '../../components/Header';
+import Button from '../../components/ui/Button';
+import { useToast } from '../../context/ToastContext';
 import { useRouter } from 'expo-router';
 
 export default function Profile() {

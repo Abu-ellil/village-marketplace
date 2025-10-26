@@ -14,6 +14,7 @@ export interface Product {
   image?: string;
   rating?: number;
   seller?: string;
+  sellerImage?: string;
   village?: string;
   phone?: string;
   category?: string;

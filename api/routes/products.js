@@ -29,8 +29,10 @@ const router = express.Router();
  *             schema:
  *               $ref: '#/components/schemas/ErrorResponse'
  */
+const { getProducts } = require('../controllers/productController');
+
 router.get('/', (req, res) => {
-  res.json(new ApiResponse(true, 'Products routes are working', []));
+  getProducts(req, res);
 });
 
 router.get('/:id', (req, res) => {

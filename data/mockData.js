@@ -1,4 +1,4 @@
-export const CATEGORIES = [
+const CATEGORIES = [
   { id: "all", name: "الكل", icon: "🏪" },
   { id: "vegetables", name: "خضروات", icon: "🥬" },
   { id: "fruits", name: "فواكه", icon: "🍎" },
@@ -8,7 +8,7 @@ export const CATEGORIES = [
   { id: "grains", name: "حبوب", icon: "🌾" },
 ];
 
-export const SERVICE_CATEGORIES = [
+const SERVICE_CATEGORIES = [
   { id: "all", name: "الكل", icon: "⚙️" },
   { id: "delivery", name: "توصيل", icon: "🚗" },
   { id: "maintenance", name: "صيانة", icon: "🔧" },
@@ -16,7 +16,7 @@ export const SERVICE_CATEGORIES = [
   { id: "services", name: "خدمات", icon: "✨" },
 ];
 
-export const ITEMS = [
+const ITEMS = [
   {
     id: 1,
     name: "طماطم طازجة",
@@ -149,7 +149,7 @@ export const ITEMS = [
   },
 ];
 
-export const SERVICES = [
+const SERVICES = [
   {
     id: 1,
     name: "توصيل طلبات",
@@ -271,3 +271,43 @@ export const SERVICES = [
     description: "خياطة وتفصيل ملابس",
   },
 ];
+
+// Export for use in seeding script
+module.exports = {
+  CATEGORIES,
+  SERVICE_CATEGORIES,
+  ITEMS,
+  SERVICES,
+  products: ITEMS.map(item => ({
+    ...item,
+    title: item.name,
+    description: item.description || '',
+    price: item.price,
+    category: item.category,
+    status: 'active',
+    isAvailable: item.inStock !== undefined ? item.inStock : true,
+    images: [item.image],
+    seller: item.seller,
+    village: item.village,
+    phone: item.phone,
+    rating: item.rating || 0,
+    reviews: item.reviews || [],
+    unit: item.unit,
+    inStock: item.inStock
+  })),
+  services: SERVICES.map(service => ({
+    ...service,
+    title: service.name,
+    description: service.description || '',
+    pricing: { basePrice: service.price },
+    category: service.category,
+    status: 'active',
+    isAvailable: service.available !== undefined ? service.available : true,
+    icon: service.icon,
+    provider: service.provider,
+    village: service.village,
+    phone: service.phone,
+    rating: service.rating || 0,
+    reviews: service.reviews || []
+  }))
+};

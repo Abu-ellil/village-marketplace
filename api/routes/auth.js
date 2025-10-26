@@ -2,7 +2,7 @@ const express = require('express');
 const authController = require('../controllers/authController');
 const { protect, authorize, authRateLimit } = require('../middleware/auth');
 
-const router = express.Router();
+const router = express.Router(); 
 
 // Public routes (no authentication required)
 router.post('/send-otp', authRateLimit, authController.sendPhoneOTP);

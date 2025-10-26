@@ -7,8 +7,10 @@ export interface Service {
   price?: number;
   unit?: string;
   provider?: string;
+  providerImage?: string;
   phone?: string;
   village?: string;
+  category?: string;
   icon?: string;
   available?: boolean;
   reviews?: Review[];

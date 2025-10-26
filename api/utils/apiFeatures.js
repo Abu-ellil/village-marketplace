@@ -92,6 +92,15 @@ class APIFeatures {
       hasPrevPage
     };
   }
+  
+  // Get match conditions for count queries
+  getMatchConditions() {
+    // Return the query object that contains the filter conditions
+    if (this.query && this.query._conditions) {
+      return this.query._conditions || {};
+    }
+    return {};
+  }
 }
 
 module.exports = APIFeatures;

@@ -1,11 +1,7 @@
 import React from "react";
-import { renderHook, act } from "@testing-library/react-hooks";
-import { CartProvider, useCart } from "../context/CartContext";
+import { renderHook, act } from "@testing-library/react-native";
+import { useCart } from "../context/CartContext";
 import { Product } from "../types/Product";
-
-const wrapper: React.FC<{ children: React.ReactNode }> = ({ children }) => (
-  <CartProvider>{children}</CartProvider>
-);
 
 const sampleProduct: Product = {
   id: "p-1",
@@ -15,7 +11,7 @@ const sampleProduct: Product = {
 
 describe("CartContext", () => {
   it("adds item to cart and increases quantity on duplicate add", () => {
-    const { result } = renderHook(() => useCart(), { wrapper });
+    const { result } = renderHook(() => useCart());
 
     act(() => {
       result.current.addToCart(sampleProduct);
@@ -33,7 +29,7 @@ describe("CartContext", () => {
   });
 
   it("changes quantity and removes item", () => {
-    const { result } = renderHook(() => useCart(), { wrapper });
+    const { result } = renderHook(() => useCart());
 
     act(() => {
       result.current.addToCart(sampleProduct);

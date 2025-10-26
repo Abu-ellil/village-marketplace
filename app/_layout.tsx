@@ -9,6 +9,9 @@ import * as Font from "expo-font";
 import * as SplashScreen from "expo-splash-screen";
 import { I18nManager, View, Text, StyleSheet, Animated } from "react-native";
 import {SafeAreaView, SafeAreaProvider} from 'react-native-safe-area-context';
+import { Stack } from 'expo-router';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { useColorScheme } from "nativewind";
 
 SplashScreen.preventAutoHideAsync().catch(() => {
   /* ignore if already prevented */
@@ -34,7 +37,7 @@ const Toast = () => {
     }
   }, [isVisible, opacity]);
 
-  if (!isVisible && opacity.__getValue() === 0) return null;
+  if (!isVisible) return null;
 
   return (
     <Animated.View
@@ -70,17 +73,17 @@ const styles = StyleSheet.create({
   },
 });
 
-function AppContent() {
+const AppContent = React.memo(() => {
   const { user, isLoading } = useAuth();
-
-  // Redirect to login if not authenticated and not loading
-  if (!user && !isLoading) {
-    return <Redirect href="/login" />;
-  }
 
   // Show splash screen while authentication state is loading
   if (isLoading) {
     return <View style={{ flex: 1, backgroundColor: '#fff' }} />;
+  }
+
+  // Redirect to login if not authenticated
+  if (!user) {
+    return <Redirect href="/login" />;
   }
 
   return (
@@ -89,19 +92,16 @@ function AppContent() {
       <Toast />
     </>
   );
-}
+});
 
-export default function Layout() {
+const queryClient = new QueryClient();
+
+export default function RootLayout() {
   const [ready, setReady] = useState(false);
-  const initializeAuth = useAuthStore((state) => state.initializeAuth);
-  const initializeCart = useCartStore((state) => state.initializeCart);
-  const initializeOrders = useOrdersStore((state) => state.initializeOrders);
-
-  const onLayoutRootView = useCallback(async () => {
-    if (ready) {
-      await SplashScreen.hideAsync();
-    }
-  }, [ready]);
+  const { colorScheme } = useColorScheme();
+  const [loaded] = Font.useFonts({
+    Cairo: require('../assets/fonts/Cairo-Regular.ttf'),
+  });
 
   useEffect(() => {
     (async () => {
@@ -118,31 +118,52 @@ export default function Layout() {
         await Font.loadAsync({
           Cairo: require("../assets/fonts/Cairo-Regular.ttf"),
         });
-        await initializeAuth(); // Initialize auth state from storage
-        await initializeCart(); // Initialize cart state from storage
-        await initializeOrders(); // Initialize orders state from storage
+        
+        // Use the store functions directly - they are stable
+        const authStore = useAuthStore.getState();
+        await authStore.initializeAuth(); // Initialize auth state from storage
+        const cartStore = useCartStore.getState();
+        await cartStore.initializeCart(); // Initialize cart state from storage
+        const ordersStore = useOrdersStore.getState();
+        await ordersStore.initializeOrders(); // Initialize orders state from storage
       } catch (e) {
         console.warn("Font loading or RTL setup failed:", e);
         // Still mark as ready to avoid hanging on splash screen
       } finally {
         setReady(true);
+        // Hide splash screen when initialization is complete
+        await SplashScreen.hideAsync();
       }
     })();
-  }, [initializeAuth, initializeCart, initializeOrders]);
+  }, []);
 
-  // keep splash until fonts/RTL are ready
-  if (!ready) {
-    return <View onLayout={onLayoutRootView} style={{ flex: 1 }} />;
+  useEffect(() => {
+    if (loaded) {
+      SplashScreen.hideAsync();
+    }
+  }, [loaded]);
+
+  if (!ready || !loaded) {
+    return null;
   }
 
   return (
-    <SafeAreaView className="flex-1 bg-neutral-50" onLayout={onLayoutRootView}>
-      
+    <QueryClientProvider client={queryClient}>
         <SafeAreaProvider>
-          <AppContent />
+          <SafeAreaView className="flex-1 bg-neutral-50">
+            <Stack>
+              <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+              <Stack.Screen name="product/[id]" options={{ headerShown: false }} />
+              <Stack.Screen name="service/[id]" options={{ headerShown: false }} />
+              <Stack.Screen name="order/[id]" options={{ headerShown: false }} />
+              <Stack.Screen name="add" options={{ headerShown: false }} />
+              <Stack.Screen name="login" options={{ headerShown: false }} />
+              <Stack.Screen name="register" options={{ headerShown: false }} />
+            </Stack>
+            <AppContent />
+          </SafeAreaView>
         </SafeAreaProvider>
-      
-    </SafeAreaView>
+    </QueryClientProvider>
   );
 }
 

@@ -9,7 +9,7 @@ import ImageWithPlaceholder from "../../components/ui/ImageWithPlaceholder";
 import { Ionicons } from "@expo/vector-icons";
 import { colors } from "../../theme/colors";
 import StarRating from "../../components/ui/StarRating";
-import api from "../../app/lib/api";
+import * as api from "../../app/lib/api";
 import { Product } from "../../types/Product";
 
 export default function ProductDetail() {
@@ -64,7 +64,7 @@ export default function ProductDetail() {
       <ScrollView>
         <ImageWithPlaceholder
           className="w-full h-64"
-          source={{ uri: product.image }}
+          uri={product.image}
         />
         <View className="p-4">
           <Text className="text-2xl font-bold mb-2">{product.name}</Text>
@@ -91,7 +91,7 @@ export default function ProductDetail() {
             <View className="flex-row items-center">
               <ImageWithPlaceholder
                 className="w-12 h-12 rounded-full mr-4"
-                source={{ uri: product.sellerImage }}
+                uri={product.sellerImage}
               />
               <View>
                 <Text className="text-base font-semibold">{product.seller}</Text>

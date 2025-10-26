@@ -2,11 +2,11 @@ import React, { useEffect, useState } from "react";
 import { View, ScrollView, Text, TouchableOpacity } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import * as Location from "expo-location";
-import Header from "../components/Header";
-import DeliveryMap from "../components/DeliveryMap";
-import { useOrders } from "../context/OrdersContext";
-import { makeCall } from "../utils/helpers";
-import { OrderStatus } from "../types/Order";
+import Header from "../../components/Header";
+import DeliveryMap from "../../components/DeliveryMap";
+import { useOrders } from "../../context/OrdersContext";
+import { makeCall } from "../../utils/helpers";
+import { OrderStatus } from "../../types/Order";
 import { useRouter } from "expo-router";
 
 const STATUS_COLORS: Record<OrderStatus, string> = {

@@ -14,7 +14,7 @@ interface ServiceCardProps {
 }
 
 const ServiceCard: React.FC<ServiceCardProps> = ({ service, onContact }) => {
-  const { router } = useRouter();
+  const router: any = useRouter();
   const makeCall = (phoneNumber?: string) => {
     if (!phoneNumber) return;
     Linking.openURL(`tel:${phoneNumber}`);
@@ -23,7 +23,7 @@ const ServiceCard: React.FC<ServiceCardProps> = ({ service, onContact }) => {
 
   const averageRating = service.reviews && service.reviews.length > 0
     ? (service.reviews.reduce((sum, review) => sum + review.rating, 0) / service.reviews.length)
-    : service.rating || 0;
+    : 0;
   const numberOfReviews = service.reviews ? service.reviews.length : 0;
 
   return (
@@ -87,7 +87,7 @@ const ServiceCard: React.FC<ServiceCardProps> = ({ service, onContact }) => {
 
             <Button
               accessibilityLabel={`Call ${service.provider}`}
-              onPress={(e) => { e.stopPropagation(); makeCall(service.phone); }}
+              onPress={() => { makeCall(service.phone); }}
               variant="secondary"
               className="px-4 py-2"
             >

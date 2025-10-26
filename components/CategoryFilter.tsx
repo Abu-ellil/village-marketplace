@@ -24,7 +24,7 @@ const CategoryFilter: React.FC<CategoryFilterProps> = ({
         paddingVertical: 8,
       }}
     >
-      {categories.map((category) => {
+      {categories && Array.isArray(categories) ? categories.map((category) => {
         const isSelected = selectedCategory === category.id;
 
         return (
@@ -64,7 +64,7 @@ const CategoryFilter: React.FC<CategoryFilterProps> = ({
             </Text>
           </TouchableOpacity>
         );
-      })}
+      }) : null}
     </ScrollView>
   );
 };

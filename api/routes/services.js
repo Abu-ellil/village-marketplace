@@ -29,8 +29,10 @@ const router = express.Router();
  *             schema:
  *               $ref: '#/components/schemas/ErrorResponse'
  */
+const { getServices } = require('../controllers/serviceController');
+
 router.get('/', (req, res) => {
-  res.json(new ApiResponse(true, 'Services routes are working', []));
+  getServices(req, res);
 });
 
 router.get('/:id', (req, res) => {

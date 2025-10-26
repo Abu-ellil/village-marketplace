@@ -15,6 +15,7 @@ interface Props {
   style?: StyleProp<ImageStyle>;
   placeholder?: React.ReactNode;
   resizeMode?: "cover" | "contain" | "stretch" | "repeat" | "center";
+  className?: string;
 }
 
 export default function ImageWithPlaceholder({
@@ -24,9 +25,11 @@ export default function ImageWithPlaceholder({
   style,
   placeholder,
   resizeMode = "cover",
+  className,
 }: Props) {
   const [loading, setLoading] = React.useState<boolean>(Boolean(uri));
   const [error, setError] = React.useState(false);
+
   // normalize numeric width to numbers where possible for RN types
   const containerStyle: any = { height, overflow: "hidden" };
   if (typeof width === "number") containerStyle.width = width;
@@ -35,7 +38,7 @@ export default function ImageWithPlaceholder({
   if (!uri || error) {
     // Show provided placeholder or a simple shimmer block
     return (
-      <View style={containerStyle}>
+      <View style={containerStyle} className={className}>
         {placeholder ? (
           <>{placeholder}</>
         ) : (
@@ -46,7 +49,7 @@ export default function ImageWithPlaceholder({
   }
 
   return (
-    <View style={containerStyle}>
+    <View style={containerStyle} className={className}>
       {loading && <Shimmer width={width} height={height} borderRadius={0} />}
       <Image
         source={{ uri }}

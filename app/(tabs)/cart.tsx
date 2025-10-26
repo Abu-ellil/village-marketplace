@@ -1,12 +1,12 @@
 import React from "react";
 import { View, ScrollView, Text } from "react-native";
-import Header from "../components/Header";
-import CartItem from "../components/CartItem";
-import { useCart } from "../context/CartContext";
-import { useOrders } from "../context/OrdersContext";
-import Button from "../components/ui/Button";
-import { useToast } from "../context/ToastContext";
-import { formatCurrency } from "../utils/helpers";
+import Header from "../../components/Header";
+import CartItem from "../../components/CartItem";
+import { useCart } from "../../context/CartContext";
+import { useOrders } from "../../context/OrdersContext";
+import Button from "../../components/ui/Button";
+import { useToast } from "../../context/ToastContext";
+import { formatCurrency } from "../../utils/helpers";
 import { useRouter } from "expo-router";
 
 export default function Cart() {
