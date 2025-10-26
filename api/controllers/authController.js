@@ -7,6 +7,55 @@ const { createSendToken } = require('../utils/jwt');
 const { generateOTP, hashOTP, verifyOTP, sendOTP } = require('../utils/otp');
 
 /**
+ * Register new user with complete profile
+ */
+const register = asyncHandler(async (req, res, next) => {
+  const { name, phone, email, villageId, address, bio, coordinates } = req.body;
+
+  if (!name || !phone || !villageId || !coordinates) {
+    return next(new AppError('الاسم ورقم الهاتف والقرية وإحداثيات الموقع مطلوبة', 400));
+  }
+
+  // Validate phone number format
+  const phoneRegex = /^(\+201|01)[0-9]{9}$/;
+  if (!phoneRegex.test(phone)) {
+    return next(new AppError('رقم الهاتف غير صحيح', 400));
+  }
+
+  // Check if phone already exists
+  const existingUser = await User.findOne({ phone });
+  if (existingUser) {
+    return next(new AppError('رقم الهاتف مسجل بالفعل', 400));
+  }
+
+  // Verify village exists
+  const village = await Village.findById(villageId);
+  if (!village) {
+    return next(new AppError('القرية المحددة غير موجودة', 404));
+  }
+
+  // Create user with complete profile
+  const user = await User.create({
+    name,
+    phone,
+    email,
+    village: villageId,
+    address,
+    bio,
+    location: {
+      type: 'Point',
+      coordinates: coordinates
+    },
+    isPhoneVerified: true,
+    isVerified: true,
+    isActive: true
+  });
+
+  // Create and send token
+  createSendToken(user, 201, res, 'تم التسجيل بنجاح');
+});
+
+/**
  * Send OTP for phone verification (Registration/Login)
  */
 const sendPhoneOTP = asyncHandler(async (req, res, next) => {
@@ -301,6 +350,7 @@ const getUserStats = asyncHandler(async (req, res, next) => {
 });
 
 module.exports = {
+  register,
   sendPhoneOTP,
   verifyPhoneOTP,
   completeProfile,

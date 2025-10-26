@@ -236,30 +236,20 @@ interface ConnectivityResult {
 export const checkServerConnectivity = async (): Promise<boolean> => {
   const result = await getDetailedConnectivity();
   
-  console.log('\n🔍 Server Connectivity Check');
-  console.log('━'.repeat(50));
-  console.log(`Status: ${result.isConnected ? '✅ Connected' : '❌ Disconnected'}`);
-  console.log(`Base URL: ${API_CONFIG.baseURL}`);
-  console.log(`Timestamp: ${result.timestamp.toISOString()}`);
-  console.log('\nEndpoints:');
+ 
   
   result.endpoints.forEach(endpoint => {
     const icon = endpoint.status === 'success' ? '✅' : '❌';
     const details = endpoint.status === 'success'
       ? `(${endpoint.statusCode}, ${endpoint.itemCount} items)`
       : `(${endpoint.error})`;
-    console.log(`  ${icon} ${endpoint.name.padEnd(12)} ${details}`);
+   
   });
   
-  console.log('━'.repeat(50) + '\n');
+ 
   
   if (!result.isConnected) {
-    console.log('💡 Troubleshooting:');
-    console.log(`   Current API URL: ${API_CONFIG.baseURL}`);
-    console.log('   1. Is the API server running? (cd api && npm run dev)');
-    console.log('   2. Using localhost? Change to your computer\'s IP address');
-    console.log('   3. Check your .env file: EXPO_PUBLIC_API_BASE_URL');
-    console.log('   4. Test in browser: ' + API_CONFIG.baseURL + '/health\n');
+    
   }
   
   return result.isConnected;

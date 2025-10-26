@@ -1,19 +1,24 @@
 const express = require('express');
-const ApiResponse = require('../utils/apiResponse');
+const villageController = require('../controllers/villageController');
+const { protect, authorize } = require('../middleware/auth');
 
 const router = express.Router();
 
-// Placeholder village routes
-router.get('/', (req, res) => {
-  res.json(ApiResponse.success('Villages routes are working', []));
-});
+// Public routes
+router.get('/', villageController.getAllVillages);
+router.get('/search', villageController.searchVillages);
+router.get('/nearby', villageController.getNearbyVillages);
+router.get('/governorate/:governorate', villageController.getVillagesByGovernorate);
+router.get('/:id', villageController.getVillage);
 
-router.get('/:id', (req, res) => {
-  res.json(ApiResponse.success('Get village by ID', { id: req.params.id, message: 'Not implemented yet' }));
-});
+// Protected routes (admin only)
+router.use(protect);
+router.use(authorize('admin'));
 
-router.post('/', (req, res) => {
-  res.json(ApiResponse.success('Create village endpoint', { message: 'Not implemented yet' }));
-});
+router.post('/', villageController.createVillage);
+router.patch('/:id', villageController.updateVillage);
+router.delete('/:id', villageController.deleteVillage);
+router.patch('/:id/admin', villageController.updateVillageAdmin);
+router.get('/stats/admin', villageController.getVillageStats);
 
-module.exports = router;
+module.exports = router; 
