@@ -39,9 +39,6 @@ class ApiClient {
     // Request interceptor
     this.client.interceptors.request.use(
       (config: InternalAxiosRequestConfig) => {
-        if (!this.isProduction) {
-          console.log(`📤 ${config.method?.toUpperCase()} ${config.url}`);
-        }
         return config;
       },
       (error: AxiosError) => {
@@ -53,9 +50,6 @@ class ApiClient {
     // Response interceptor
     this.client.interceptors.response.use(
       (response) => {
-        if (!this.isProduction) {
-          console.log(`✅ ${response.status} ${response.config.url}`);
-        }
         return response;
       },
       (error: AxiosError) => {
@@ -235,23 +229,6 @@ interface ConnectivityResult {
 
 export const checkServerConnectivity = async (): Promise<boolean> => {
   const result = await getDetailedConnectivity();
-  
- 
-  
-  result.endpoints.forEach(endpoint => {
-    const icon = endpoint.status === 'success' ? '✅' : '❌';
-    const details = endpoint.status === 'success'
-      ? `(${endpoint.statusCode}, ${endpoint.itemCount} items)`
-      : `(${endpoint.error})`;
-   
-  });
-  
- 
-  
-  if (!result.isConnected) {
-    
-  }
-  
   return result.isConnected;
 };
 

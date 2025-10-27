@@ -53,11 +53,6 @@ const serviceSchema = new mongoose.Schema({
   },
   
   // Location
-  village: {
-    type: mongoose.Schema.ObjectId,
-    ref: 'Village',
-    required: [true, 'قرية الخدمة مطلوبة']
-  },
   
   location: {
     type: {
@@ -81,12 +76,7 @@ const serviceSchema = new mongoose.Schema({
       type: Number,
       default: 5, // km
       min: [0, 'نطاق الخدمة لا يمكن أن يكون سالب']
-    },
-    villages: [{
-      type: mongoose.Schema.ObjectId,
-      ref: 'Village'
-    }]
-  },
+    }
   
   // Pricing
   pricing: {
@@ -415,7 +405,6 @@ const serviceSchema = new mongoose.Schema({
 serviceSchema.index({ slug: 1 });
 serviceSchema.index({ provider: 1 });
 serviceSchema.index({ category: 1 });
-serviceSchema.index({ village: 1 });
 serviceSchema.index({ location: '2dsphere' });
 serviceSchema.index({ status: 1, isActive: 1 });
 serviceSchema.index({ isFeatured: 1, isUrgent: 1 });
@@ -548,17 +537,13 @@ serviceSchema.statics.search = function(query, filters = {}) {
 };
 
 // Static method to get featured services
-serviceSchema.statics.getFeatured = function(limit = 10, village = null) {
+serviceSchema.statics.getFeatured = function(limit = 10) {
   const query = {
     isFeatured: true,
     status: 'active',
     isActive: true,
     'availability.isAvailable': true
   };
-  
-  if (village) {
-    query.village = village;
-  }
   
   return this.find(query)
     .populate('provider', 'name avatar')

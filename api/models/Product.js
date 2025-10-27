@@ -58,11 +58,6 @@ const productSchema = new mongoose.Schema({
   },
   
   // Location
-  village: {
-    type: mongoose.Schema.ObjectId,
-    ref: 'Village',
-    required: [true, 'قرية المنتج مطلوبة']
-  },
   
   location: {
     type: {
@@ -307,7 +302,6 @@ const productSchema = new mongoose.Schema({
 productSchema.index({ slug: 1 });
 productSchema.index({ seller: 1 });
 productSchema.index({ category: 1 });
-productSchema.index({ village: 1 });
 productSchema.index({ location: '2dsphere' });
 productSchema.index({ status: 1, isActive: 1 });
 productSchema.index({ isFeatured: 1, isUrgent: 1 });
@@ -438,17 +432,13 @@ productSchema.statics.search = function(query, filters = {}) {
 };
 
 // Static method to get featured products
-productSchema.statics.getFeatured = function(limit = 10, village = null) {
+productSchema.statics.getFeatured = function(limit = 10) {
   const query = {
     isFeatured: true,
     status: 'active',
     isActive: true,
     isAvailable: true
   };
-  
-  if (village) {
-    query.village = village;
-  }
   
   return this.find(query)
     .populate('seller', 'name avatar')
@@ -458,17 +448,13 @@ productSchema.statics.getFeatured = function(limit = 10, village = null) {
 };
 
 // Static method to get urgent products
-productSchema.statics.getUrgent = function(limit = 10, village = null) {
+productSchema.statics.getUrgent = function(limit = 10) {
   const query = {
     isUrgent: true,
     status: 'active',
     isActive: true,
     isAvailable: true
   };
-  
-  if (village) {
-    query.village = village;
-  }
   
   return this.find(query)
     .populate('seller', 'name avatar')

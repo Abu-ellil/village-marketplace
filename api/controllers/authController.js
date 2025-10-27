@@ -1,5 +1,4 @@
 const User = require('../models/User');
-const Village = require('../models/Village');
 const AppError = require('../utils/appError');
 const asyncHandler = require('../utils/asyncHandler');
 const ApiResponse = require('../utils/apiResponse');
@@ -10,10 +9,10 @@ const { generateOTP, hashOTP, verifyOTP, sendOTP } = require('../utils/otp');
  * Register new user with complete profile
  */
 const register = asyncHandler(async (req, res, next) => {
-  const { name, phone, email, villageId, address, bio, coordinates } = req.body;
+  const { name, phone, email, address, bio, coordinates } = req.body;
 
-  if (!name || !phone || !villageId || !coordinates) {
-    return next(new AppError('الاسم ورقم الهاتف والقرية وإحداثيات الموقع مطلوبة', 400));
+  if (!name || !phone || !coordinates) {
+    return next(new AppError('الاسم ورقم الهاتف وإحداثيات الموقع مطلوبة', 400));
   }
 
   // Validate phone number format
@@ -28,18 +27,11 @@ const register = asyncHandler(async (req, res, next) => {
     return next(new AppError('رقم الهاتف مسجل بالفعل', 400));
   }
 
-  // Verify village exists
-  const village = await Village.findById(villageId);
-  if (!village) {
-    return next(new AppError('القرية المحددة غير موجودة', 404));
-  }
-
   // Create user with complete profile
   const user = await User.create({
     name,
     phone,
     email,
-    village: villageId,
     address,
     bio,
     location: {
@@ -97,8 +89,7 @@ const sendPhoneOTP = asyncHandler(async (req, res, next) => {
       phoneOTP: hashedOTP,
       phoneOTPExpires: Date.now() + 10 * 60 * 1000,
       phoneOTPAttempts: 1,
-      name: '', // Will be set during profile completion
-      village: null // Will be set during profile completion
+      name: '' // Will be set during profile completion
     });
   }
 
@@ -159,7 +150,7 @@ const verifyPhoneOTP = asyncHandler(async (req, res, next) => {
   await user.save({ validateBeforeSave: false });
 
   // Check if profile is complete
-  const isProfileComplete = user.name && user.village;
+  const isProfileComplete = !!user.name;
 
   // Create and send token
   createSendToken(user, 200, res, isProfileComplete ? 'تم تسجيل الدخول بنجاح' : 'تم التحقق من الهاتف، يرجى إكمال الملف الشخصي');
@@ -169,16 +160,10 @@ const verifyPhoneOTP = asyncHandler(async (req, res, next) => {
  * Complete user profile after OTP verification
  */
 const completeProfile = asyncHandler(async (req, res, next) => {
-  const { name, villageId, address, businessName, businessType } = req.body;
+  const { name, address, businessName, businessType } = req.body;
 
-  if (!name || !villageId) {
-    return next(new AppError('الاسم والقرية مطلوبان', 400));
-  }
-
-  // Verify village exists
-  const village = await Village.findById(villageId);
-  if (!village) {
-    return next(new AppError('القرية المحددة غير موجودة', 404));
+  if (!name) {
+    return next(new AppError('الاسم مطلوب', 400));
   }
 
   // Update user profile
@@ -186,14 +171,13 @@ const completeProfile = asyncHandler(async (req, res, next) => {
     req.user._id,
     {
       name,
-      village: villageId,
       address,
       businessName,
       businessType,
       role: businessName ? 'seller' : 'user'
     },
     { new: true, runValidators: true }
-  ).populate('village', 'name governorate');
+  );
 
   res.status(200).json(
     ApiResponse.success('تم إكمال الملف الشخصي بنجاح', { user })
@@ -205,7 +189,6 @@ const completeProfile = asyncHandler(async (req, res, next) => {
  */
 const getMe = asyncHandler(async (req, res, next) => {
   const user = await User.findById(req.user._id)
-    .populate('village', 'name governorate')
     .populate('products')
     .populate('services');
 
@@ -237,7 +220,7 @@ const updateProfile = asyncHandler(async (req, res, next) => {
     req.user._id,
     updates,
     { new: true, runValidators: true }
-  ).populate('village', 'name governorate');
+  );
 
   res.status(200).json(
     ApiResponse.success('تم تحديث الملف الشخصي بنجاح', { user })
@@ -349,8 +332,34 @@ const getUserStats = asyncHandler(async (req, res, next) => {
   );
 });
 
+// Login with email/password
+const login = asyncHandler(async (req, res, next) => {
+  const { email, password } = req.body;
+
+  // Validate email and password exist
+  if (!email || !password) {
+    return next(new AppError('يرجى إدخال البريد الإلكتروني وكلمة المرور', 400));
+  }
+
+  // Check if user exists and password is correct
+  const user = await User.findOne({ email: email }).select('+password');
+
+  if (!user || !(await user.correctPassword(password, user.password))) {
+    return next(new AppError('البريد الإلكتروني أو كلمة المرور غير صحيحة', 401));
+  }
+
+  // Check if user is active
+  if (!user.isActive) {
+    return next(new AppError('تم تعطيل حسابك. يرجى الاتصال بالدعم', 401));
+  }
+
+  // Create and send token
+  createSendToken(user, 200, res, 'تم تسجيل الدخول بنجاح');
+});
+
 module.exports = {
   register,
+  login,
   sendPhoneOTP,
   verifyPhoneOTP,
   completeProfile,

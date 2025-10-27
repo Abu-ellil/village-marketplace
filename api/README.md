@@ -94,7 +94,7 @@ npm start
 ### Authentication
 - `POST /api/v1/auth/register` - تسجيل مستخدم جديد
 - `POST /api/v1/auth/verify-otp` - تأكيد رمز OTP
-- `POST /api/v1/auth/login` - تسجيل الدخول
+- `POST /api/v1/auth/login` - تسجيل الدخول باستخدام البريد الإلكتروني وكلمة المرور
 - `POST /api/v1/auth/resend-otp` - إعادة إرسال OTP
 
 ### Users

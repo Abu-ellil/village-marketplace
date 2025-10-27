@@ -89,7 +89,6 @@ const AppContent = React.memo(() => {
   return (
     <>
       <Slot />
-      <Toast />
     </>
   );
 });
@@ -161,6 +160,7 @@ export default function RootLayout() {
               <Stack.Screen name="register" options={{ headerShown: false }} />
             </Stack>
             <AppContent />
+            <Toast />
           </SafeAreaView>
         </SafeAreaProvider>
     </QueryClientProvider>

@@ -27,13 +27,6 @@ const orderSchema = new mongoose.Schema({
     ref: 'Store'
   },
   
-  // Location
-  village: {
-    type: mongoose.Schema.ObjectId,
-    ref: 'Village',
-    required: [true, 'القرية مطلوبة']
-  },
-  
   // Order Items
   items: [{
     product: {
@@ -298,7 +291,6 @@ orderSchema.index({ orderNumber: 1 });
 orderSchema.index({ customer: 1 });
 orderSchema.index({ seller: 1 });
 orderSchema.index({ store: 1 });
-orderSchema.index({ village: 1 });
 orderSchema.index({ status: 1 });
 orderSchema.index({ 'payment.status': 1 });
 orderSchema.index({ createdAt: -1 });

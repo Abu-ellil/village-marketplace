@@ -13,8 +13,7 @@ const getServices = asyncHandler(async (req, res) => {
   const features = new ApiFeatures(
     Service.find({ status: "active" })
       .populate("provider", "name avatar")
-      .populate("category", "name nameEn")
-      .populate("village", "name nameEn"),
+      .populate("category", "name nameEn"),
     req.query
   )
     .filter()
@@ -49,9 +48,8 @@ const getServices = asyncHandler(async (req, res) => {
 // @access  Public
 const getService = asyncHandler(async (req, res) => {
   const service = await Service.findById(req.params.id)
-    .populate("provider", "name avatar phone email village")
+    .populate("provider", "name avatar phone email")
     .populate("category", "name nameEn")
-    .populate("village", "name nameEn governorate")
     .populate({
       path: "reviews",
       populate: {
@@ -76,7 +74,6 @@ const getService = asyncHandler(async (req, res) => {
 const createService = asyncHandler(async (req, res) => {
   // Add provider from authenticated user
   req.body.provider = req.user._id;
-  req.body.village = req.user.village;
 
   // Validate category exists
   if (req.body.category) {
@@ -93,7 +90,6 @@ const createService = asyncHandler(async (req, res) => {
   await service.populate([
     { path: "provider", select: "name avatar" },
     { path: "category", select: "name nameEn" },
-    { path: "village", select: "name nameEn" },
   ]);
 
   res.status(201).json(ApiResponse.success(service, "تم إنشاء الخدمة بنجاح"));
@@ -129,9 +125,8 @@ const updateService = asyncHandler(async (req, res) => {
     }
   }
 
-  // Don't allow changing provider or village
+  // Don't allow changing provider
   delete req.body.provider;
-  delete req.body.village;
 
   service = await Service.findByIdAndUpdate(req.params.id, req.body, {
     new: true,
@@ -139,7 +134,6 @@ const updateService = asyncHandler(async (req, res) => {
   }).populate([
     { path: "provider", select: "name avatar" },
     { path: "category", select: "name nameEn" },
-    { path: "village", select: "name nameEn" },
   ]);
 
   res.json(ApiResponse.success(service, "تم تحديث الخدمة بنجاح"));

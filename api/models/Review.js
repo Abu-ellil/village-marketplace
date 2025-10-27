@@ -167,10 +167,6 @@ const reviewSchema = new mongoose.Schema({
   
   // Location (if relevant)
   location: {
-    village: {
-      type: mongoose.Schema.ObjectId,
-      ref: 'Village'
-    },
     coordinates: {
       type: [Number], // [longitude, latitude]
       index: '2dsphere'

@@ -2,6 +2,7 @@ import { create } from 'zustand';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import axios from 'axios';
 import { API_BASE_URL } from '../utils/config';
+import { useToastStore } from './toastStore';
 
 interface User {
   id: string;
@@ -14,7 +15,7 @@ interface AuthState {
   user: User | null;
   isLoading: boolean;
   login: (email: string, password: string) => Promise<boolean>;
-  register: (userData: { name: string; phone: string; email?: string; villageId: string; address?: string; bio?: string; coordinates: [number, number]; }) => Promise<boolean>;
+  register: (userData: { name: string; phone: string; email: string; address?: string; bio?: string; coordinates: [number, number]; }) => Promise<boolean>;
   sendOTP: (phone: string) => Promise<boolean>;
   verifyOTP: (phone: string, otp: string) => Promise<boolean>;
   completeProfile: (profileData: any) => Promise<boolean>;
@@ -69,9 +70,23 @@ export const useAuthStore = create<AuthState>()((set, get) => ({
       await AsyncStorage.setItem(USER_STORAGE_KEY, JSON.stringify(userData));
       await AsyncStorage.setItem(TOKEN_STORAGE_KEY, token);
       set({ user: newUser });
+      useToastStore.getState().show('Login successful!');
       return true;
     } catch (e: any) {
-      console.error('Login failed', e.response?.data || e.message);
+      const errorData = e.response?.data;
+      const errorMessage = errorData?.message || 'An unexpected error occurred.';
+      
+      // Provide more specific error messages for common scenarios
+      let userFriendlyMessage = errorMessage;
+      if (e.response?.status === 401) {
+        userFriendlyMessage = errorData?.message || 'Invalid email or password.';
+      } else if (e.response?.status === 404) {
+        userFriendlyMessage = 'User not found.';
+      } else if (e.response?.status === 429) {
+        userFriendlyMessage = 'Too many login attempts. Please try again later.';
+      }
+      
+      useToastStore.getState().show(userFriendlyMessage);
       return false;
     } finally {
       set({ isLoading: false });
@@ -88,9 +103,22 @@ export const useAuthStore = create<AuthState>()((set, get) => ({
       await AsyncStorage.setItem(USER_STORAGE_KEY, JSON.stringify(userDataResponse));
       await AsyncStorage.setItem(TOKEN_STORAGE_KEY, token);
       set({ user: newUser });
+      useToastStore.getState().show('Registration successful!');
       return true;
     } catch (e: any) {
-      console.error('Registration failed', e.response?.data || e.message);
+      const errorData = e.response?.data;
+      const errorMessage = errorData?.message || 'An unexpected error occurred.';
+      console.error('Registration failed', errorData || e.message);
+      
+      // Provide more specific error messages for common scenarios
+      let userFriendlyMessage = errorMessage;
+      if (e.response?.status === 400) {
+        userFriendlyMessage = errorData?.message || 'Invalid registration data.';
+      } else if (e.response?.status === 409) {
+        userFriendlyMessage = 'User already exists.';
+      }
+      
+      useToastStore.getState().show(userFriendlyMessage);
       return false;
     } finally {
       set({ isLoading: false });
@@ -101,9 +129,21 @@ export const useAuthStore = create<AuthState>()((set, get) => ({
     set({ isLoading: true });
     try {
       const response = await axios.post(`${API_BASE_URL}/auth/send-otp`, { phoneNumber: phone });
+      useToastStore.getState().show('OTP sent successfully!');
       return response.data.success;
     } catch (e: any) {
-      console.error('Send OTP failed', e.response?.data || e.message);
+      const errorData = e.response?.data;
+      const errorMessage = errorData?.message || 'An unexpected error occurred.';
+      
+      // Provide more specific error messages for common scenarios
+      let userFriendlyMessage = errorMessage;
+      if (e.response?.status === 429) {
+        userFriendlyMessage = 'Too many requests. Please try again later.';
+      } else if (e.response?.status === 400) {
+        userFriendlyMessage = errorData?.message || 'Invalid phone number.';
+      }
+      
+      useToastStore.getState().show(userFriendlyMessage);
       return false;
     } finally {
       set({ isLoading: false });
@@ -120,14 +160,27 @@ export const useAuthStore = create<AuthState>()((set, get) => ({
       await AsyncStorage.setItem(USER_STORAGE_KEY, JSON.stringify(userData));
       await AsyncStorage.setItem(TOKEN_STORAGE_KEY, token);
       set({ user: newUser });
+      useToastStore.getState().show('OTP verified successfully!');
       return true;
     } catch (e: any) {
-      console.error('Verify OTP failed', e.response?.data || e.message);
+      const errorData = e.response?.data;
+      const errorMessage = errorData?.message || 'An unexpected error occurred.';
+      console.error('Verify OTP failed', errorData || e.message);
+      
+      // Provide more specific error messages for common scenarios
+      let userFriendlyMessage = errorMessage;
+      if (e.response?.status === 400) {
+        userFriendlyMessage = errorData?.message || 'Invalid OTP code.';
+      } else if (e.response?.status === 404) {
+        userFriendlyMessage = 'User not found.';
+      }
+      
+      useToastStore.getState().show(userFriendlyMessage);
       return false;
     } finally {
       set({ isLoading: false });
     }
-  },
+ },
 
   completeProfile: async (profileData: any) => {
     set({ isLoading: true });
@@ -142,9 +195,20 @@ export const useAuthStore = create<AuthState>()((set, get) => ({
         await AsyncStorage.setItem(USER_STORAGE_KEY, JSON.stringify(userData));
         set({ user: updatedUser });
       }
+      useToastStore.getState().show('Profile completed successfully!');
       return true;
     } catch (e: any) {
-      console.error('Complete profile failed', e.response?.data || e.message);
+      const errorData = e.response?.data;
+      const errorMessage = errorData?.message || 'An unexpected error occurred.';
+      console.error('Complete profile failed', errorData || e.message);
+      
+      // Provide more specific error messages for common scenarios
+      let userFriendlyMessage = errorMessage;
+      if (e.response?.status === 400) {
+        userFriendlyMessage = errorData?.message || 'Invalid profile data.';
+      }
+      
+      useToastStore.getState().show(userFriendlyMessage);
       return false;
     } finally {
       set({ isLoading: false });
@@ -157,8 +221,10 @@ export const useAuthStore = create<AuthState>()((set, get) => ({
       await AsyncStorage.removeItem(USER_STORAGE_KEY);
       await AsyncStorage.removeItem(TOKEN_STORAGE_KEY);
       set({ user: null });
+      useToastStore.getState().show('Logged out successfully!');
     } catch (e) {
       console.error('Logout failed', e);
+      useToastStore.getState().show('Logout failed. Please try again.');
     } finally {
       set({ isLoading: false });
     }

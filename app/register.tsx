@@ -8,43 +8,22 @@ import Button from '../components/ui/Button';
 import { useToast } from '../context/ToastContext';
 import { API_BASE_URL } from '../utils/config';
 
-interface Village {
-  _id: string;
-  name: string;
-  governorate: string;
-  center: string;
-}
-
 export default function Register() {
   const [name, setName] = useState('');
   const [phone, setPhone] = useState('');
   const [email, setEmail] = useState('');
-  const [village, setVillage] = useState('');
   const [address, setAddress] = useState('');
   const [bio, setBio] = useState('');
   const [location, setLocation] = useState<{ latitude: number; longitude: number } | null>(null);
-  const [villages, setVillages] = useState<Village[]>([]);
+
+  useEffect(() => {
+    console.log('Location state changed:', location);
+  }, [location]);
   const [isLocationLoading, setIsLocationLoading] = useState(false);
 
   const { register, isLoading } = useAuth();
   const { show } = useToast();
   const router = useRouter();
-
-  useEffect(() => {
-    fetchVillages();
-  }, []);
-
-  const fetchVillages = async () => {
-    try {
-      const response = await fetch(`${API_BASE_URL}/villages`);
-      const data = await response.json();
-      if (data.success) {
-        setVillages(data.data);
-      }
-    } catch (error) {
-      console.error('Failed to fetch villages:', error);
-    }
-  };
 
   const requestLocationPermission = async () => {
     setIsLocationLoading(true);
@@ -52,26 +31,34 @@ export default function Register() {
       const { status } = await Location.requestForegroundPermissionsAsync();
       if (status !== 'granted') {
         Alert.alert('إذن الموقع مطلوب', 'يرجى السماح بالوصول إلى الموقع لتحديد موقعك الحالي');
+        setIsLocationLoading(false);
         return;
       }
 
       const locationData = await Location.getCurrentPositionAsync({});
-      setLocation({
-        latitude: locationData.coords.latitude,
-        longitude: locationData.coords.longitude,
-      });
-      show('تم تحديد الموقع بنجاح');
+      const { latitude, longitude } = locationData.coords;
+      setLocation({ latitude, longitude });
+
+      // Reverse geocode to find address
+      const addresses = await Location.reverseGeocodeAsync({ latitude, longitude });
+      if (addresses.length > 0) {
+        const addr = addresses[0];
+        const formattedAddress = [addr.street, addr.city, addr.region, addr.postalCode, addr.country].filter(Boolean).join(', ');
+        setAddress(formattedAddress);
+      }
+
+      show('تم تحديد الموقع والعنوان بنجاح');
     } catch (error) {
-      console.error('Error getting location:', error);
-      show('فشل في تحديد الموقع');
+      console.error('Error getting location or address:', error);
+      show('فشل في تحديد الموقع أو العنوان');
     } finally {
       setIsLocationLoading(false);
     }
   };
 
   const handleRegister = async () => {
-    if (!name || !phone || !village) {
-      show('الرجاء إدخال الاسم ورقم الهاتف والقرية');
+    if (!name || !phone || !email) {
+      show('الرجاء إدخال الاسم ورقم الهاتف والبريد الإلكتروني');
       return;
     }
 
@@ -80,11 +67,12 @@ export default function Register() {
       return;
     }
 
+    show('جاري معالجة طلب التسجيل...');
+    
     const success = await register({
       name,
       phone,
-      email: email || undefined,
-      villageId: village,
+      email,
       address,
       bio: bio || undefined,
       coordinates: [location.longitude, location.latitude],
@@ -123,30 +111,12 @@ export default function Register() {
 
         <TextInput
           className="w-full p-3 bg-white rounded-lg mb-4 border border-gray-300"
-          placeholder="البريد الإلكتروني (اختياري)"
+          placeholder="البريد الإلكتروني *"
           value={email}
           onChangeText={setEmail}
           keyboardType="email-address"
           autoCapitalize="none"
         />
-
-        <TouchableOpacity
-          className="w-full p-3 bg-white rounded-lg mb-4 border border-gray-300"
-          onPress={() => {
-            // Simple village picker - in real app, use a proper picker
-            Alert.alert('اختيار القرية', 'يرجى اختيار قريتك من القائمة', [
-              { text: 'إلغاء', style: 'cancel' },
-              ...villages.slice(0, 5).map(v => ({
-                text: `${v.name} - ${v.governorate}`,
-                onPress: () => setVillage(v._id)
-              }))
-            ]);
-          }}
-        >
-          <Text className={village ? "text-black" : "text-gray-500"}>
-            {village ? villages.find(v => v._id === village)?.name || 'قرية محددة' : 'اختر القرية *'}
-          </Text>
-        </TouchableOpacity>
 
         <TextInput
           className="w-full p-3 bg-white rounded-lg mb-4 border border-gray-300"

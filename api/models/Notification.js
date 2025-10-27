@@ -74,7 +74,6 @@ const notificationSchema = new mongoose.Schema({
       'recommendation',
       
       // Community
-      'village_news',
       'community_event',
       'weather_alert',
       'emergency_alert'
@@ -86,7 +85,7 @@ const notificationSchema = new mongoose.Schema({
   relatedEntity: {
     entityType: {
       type: String,
-      enum: ['User', 'Product', 'Service', 'Store', 'Order', 'Review', 'Message', 'Village']
+      enum: ['User', 'Product', 'Service', 'Store', 'Order', 'Review', 'Message']
     },
     entityId: {
       type: mongoose.Schema.ObjectId,

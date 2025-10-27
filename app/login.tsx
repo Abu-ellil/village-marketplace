@@ -10,21 +10,21 @@ export default function Login() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const { login, isLoading } = useAuth();
-  const { show } = useToast();
   const router = useRouter();
 
   const handleLogin = async () => {
     if (!email || !password) {
-      show('الرجاء إدخال البريد الإلكتروني وكلمة المرور');
+      useToast.getState().show('الرجاء إدخال البريد الإلكتروني وكلمة المرور');
       return;
     }
+    
+    // Don't show a temporary message here, let the auth store handle feedback
     const success = await login(email, password);
     if (success) {
-      show('تم تسجيل الدخول بنجاح');
+      useToast.getState().show('تم تسجيل الدخول بنجاح');
       router.replace('/'); // Redirect to home or previous screen
-    } else {
-      show('فشل تسجيل الدخول. تحقق من بيانات الاعتماد.');
     }
+    // Error handling is already done in the auth store
   };
 
   return (

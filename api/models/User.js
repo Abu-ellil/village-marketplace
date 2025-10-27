@@ -40,11 +40,7 @@ const userSchema = new mongoose.Schema({
   },
   
   // Location Information
-  village: {
-    type: mongoose.Schema.ObjectId,
-    ref: 'Village',
-    required: [true, 'القرية مطلوبة']
-  },
+
   
   address: {
     type: String,
@@ -208,7 +204,6 @@ const userSchema = new mongoose.Schema({
 
 // Indexes
 userSchema.index({ phone: 1 });
-userSchema.index({ village: 1 });
 userSchema.index({ location: '2dsphere' });
 userSchema.index({ isActive: 1, isVerified: 1 });
 userSchema.index({ createdAt: -1 });

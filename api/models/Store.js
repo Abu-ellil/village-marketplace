@@ -47,11 +47,6 @@ const storeSchema = new mongoose.Schema({
   }],
   
   // Location
-  village: {
-    type: mongoose.Schema.ObjectId,
-    ref: 'Village',
-    required: [true, 'قرية المتجر مطلوبة']
-  },
   
   location: {
     type: {
@@ -404,7 +399,6 @@ const storeSchema = new mongoose.Schema({
 storeSchema.index({ slug: 1 });
 storeSchema.index({ owner: 1 });
 storeSchema.index({ category: 1 });
-storeSchema.index({ village: 1 });
 storeSchema.index({ location: '2dsphere' });
 storeSchema.index({ status: 1, isActive: 1 });
 storeSchema.index({ isFeatured: 1, isVerified: 1 });
@@ -514,16 +508,12 @@ storeSchema.statics.search = function(query, filters = {}) {
 };
 
 // Static method to get featured stores
-storeSchema.statics.getFeatured = function(limit = 10, village = null) {
+storeSchema.statics.getFeatured = function(limit = 10) {
   const query = {
     isFeatured: true,
     status: 'active',
     isActive: true
   };
-  
-  if (village) {
-    query.village = village;
-  }
   
   return this.find(query)
     .populate('owner', 'name avatar')

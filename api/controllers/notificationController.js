@@ -267,7 +267,6 @@ const sendBulkNotification = asyncHandler(async (req, res, next) => {
     // Send based on filters
     let query = {};
     if (filters.role) query.role = filters.role;
-    if (filters.village) query.village = filters.village;
     if (filters.isActive !== undefined) query.isActive = filters.isActive;
     
     targetUsers = await User.find(query);
