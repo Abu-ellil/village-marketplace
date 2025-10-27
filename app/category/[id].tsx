@@ -4,6 +4,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Stack, useLocalSearchParams } from 'expo-router';
 import { useCategories, useProducts } from '../../app/lib/api';
 import ProductCard from '../../components/ProductCard';
+import { useCart } from '../../context/CartContext';
 import SearchBar from '../../components/SearchBar';
 import { Category } from '../../types/Category';
 import { Product } from '../../types/Product';
@@ -12,6 +13,7 @@ export default function CategoryDetail() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const { data: categories } = useCategories();
   const { data: products, isLoading } = useProducts();
+  const { addToCart } = useCart();
 
   const category: Category | undefined = id === 'all'
     ? { id: 'all', name: 'الكل', icon: undefined }
@@ -51,7 +53,7 @@ export default function CategoryDetail() {
           
           <View className="space-y-4">
             {categoryProducts.map((product) => (
-              <ProductCard key={product.id} product={product} onAddToCart={() => {}} />
+              <ProductCard key={product.id} product={product} onAddToCart={addToCart} />
             ))}
           </View>
         </View>

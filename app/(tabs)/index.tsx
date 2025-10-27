@@ -5,6 +5,7 @@ import { Stack } from 'expo-router';
 import { Category } from '../../types/Category';
 import { Product } from '../../types/Product';
 import { useCategories, useProducts, useServices } from '../lib/api';
+import { useCart } from '../../context/CartContext';
 import CategoryFilter from '../../components/CategoryFilter';
 import ProductCard from '../../components/ProductCard';
 import ServiceCard from '../../components/ServiceCard';
@@ -16,6 +17,7 @@ import { ProductCardSkeleton, ServiceCardSkeleton } from '../../components/ui/Ca
 export default function TabOneScreen() {
   const { data: products, isLoading: isLoadingProducts, isError: isErrorProducts } = useProducts();
   const { data: services, isLoading: isLoadingServices, isError: isErrorServices } = useServices();
+  const { addToCart } = useCart();
 
   const [activeCategory, setActiveCategory] = useState<string | null>('all');
   const [selectedSeller, setSelectedSeller] = useState<string | null>(null);
@@ -124,7 +126,7 @@ export default function TabOneScreen() {
           <Text className="text-xl font-bold px-4 mb-2">Products ({productsToDisplay?.length || 0})</Text>
           <FlashList
             data={productsToDisplay || []}
-            renderItem={({ item }) => <ProductCard product={item} onAddToCart={() => {}} />}
+            renderItem={({ item }) => <ProductCard product={item} onAddToCart={addToCart} />}
             keyExtractor={(item) => item.id.toString()}
             numColumns={2}
           />
