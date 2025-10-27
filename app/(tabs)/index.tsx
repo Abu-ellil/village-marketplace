@@ -24,24 +24,24 @@ export default function TabOneScreen() {
   const [selectedSeller, setSelectedSeller] = useState<string | null>(null);
 
   const allSellers = Array.from(new Set([
-    ...(products || []).map(p => ({ name: p.seller, image: p.sellerImage })),
-    ...(services || []).map(s => ({ name: s.provider, image: s.providerImage })),
+    ...(products && Array.isArray(products) ? products.map(p => ({ name: p.seller, image: p.sellerImage })) : []),
+    ...(services && Array.isArray(services) ? services.map(s => ({ name: s.provider, image: s.providerImage })) : []),
   ])).map(seller => seller);
 
   const filteredProducts = activeCategory
-    ? products?.filter((product) => product.category === activeCategory) || []
-    : products || [];
+    ? (products && Array.isArray(products) ? products.filter((product) => product.category === activeCategory) : [])
+    : (products && Array.isArray(products) ? products : []);
 
   const filteredServices = activeCategory
-    ? services?.filter((service) => service.category === activeCategory) || []
-    : services || [];
+    ? (services && Array.isArray(services) ? services.filter((service) => service.category === activeCategory) : [])
+    : (services && Array.isArray(services) ? services : []);
 
   const productsToDisplay = selectedSeller
-    ? filteredProducts.filter(product => product.seller === selectedSeller)
+    ? (filteredProducts && Array.isArray(filteredProducts) ? filteredProducts.filter(product => product.seller === selectedSeller) : [])
     : filteredProducts;
 
   const servicesToDisplay = selectedSeller
-    ? filteredServices.filter(service => service.provider === selectedSeller)
+    ? (filteredServices && Array.isArray(filteredServices) ? filteredServices.filter(service => service.provider === selectedSeller) : [])
     : filteredServices;
 
   if (isLoadingProducts || isLoadingServices || isLoadingCategories) {
@@ -63,20 +63,20 @@ export default function TabOneScreen() {
       <ScrollView showsVerticalScrollIndicator={false}>
         <SearchBar value="" onChangeText={() => {}} />
         <ShopBar
-          sellers={allSellers}
+          sellers={allSellers || []}
           selectedSeller={selectedSeller}
           onSelectSeller={setSelectedSeller}
         />
         <CategoryFilter
-          categories={categories || CATEGORIES}
+          categories={categories && Array.isArray(categories) ? categories : CATEGORIES}
           selectedCategory={activeCategory}
           onSelectCategory={setActiveCategory}
         />
 
         <View className="mt-4">
-          <Text className="text-xl font-bold px-4 mb-2">Products ({productsToDisplay.length})</Text>
+          <Text className="text-xl font-bold px-4 mb-2">Products ({productsToDisplay?.length || 0})</Text>
           <FlashList
-            data={productsToDisplay}
+            data={productsToDisplay || []}
             renderItem={({ item }) => <ProductCard product={item} onAddToCart={() => {}} />}
             keyExtractor={(item) => item.id.toString()}
             horizontal
@@ -85,9 +85,9 @@ export default function TabOneScreen() {
         </View>
 
         <View className="mt-4">
-          <Text className="text-xl font-bold px-4 mb-2">Services ({servicesToDisplay.length})</Text>
+          <Text className="text-xl font-bold px-4 mb-2">Services ({servicesToDisplay?.length || 0})</Text>
           <FlashList
-            data={servicesToDisplay}
+            data={servicesToDisplay || []}
             renderItem={({ item }) => <ServiceCard service={item} />}
             keyExtractor={(item) => item.id.toString()}
             horizontal

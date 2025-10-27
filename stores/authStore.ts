@@ -4,7 +4,7 @@ import axios from 'axios';
 import { API_BASE_URL } from '../utils/config';
 import { useToastStore } from './toastStore';
 
-interface User {
+interface User { 
   id: string;
   email: string;
   name: string;

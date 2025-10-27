@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useCallback } from "react";
-import { Slot, Redirect } from "expo-router";
+import { Redirect } from "expo-router";
 import { useAuth } from "../context/AuthContext";
 import { useAuthStore } from "../stores/authStore";
 import { useCartStore } from "../stores/cartStore";
@@ -73,25 +73,7 @@ const styles = StyleSheet.create({
   },
 });
 
-const AppContent = React.memo(() => {
-  const { user, isLoading } = useAuth();
 
-  // Show splash screen while authentication state is loading
-  if (isLoading) {
-    return <View style={{ flex: 1, backgroundColor: '#fff' }} />;
-  }
-
-  // Redirect to login if not authenticated
-  if (!user) {
-    return <Redirect href="/login" />;
-  }
-
-  return (
-    <>
-      <Slot />
-    </>
-  );
-});
 
 const queryClient = new QueryClient();
 
@@ -101,6 +83,7 @@ export default function RootLayout() {
   const [loaded] = Font.useFonts({
     Cairo: require('../assets/fonts/Cairo-Regular.ttf'),
   });
+  const { user, isLoading } = useAuth();
 
   useEffect(() => {
     (async () => {
@@ -150,16 +133,21 @@ export default function RootLayout() {
     <QueryClientProvider client={queryClient}>
         <SafeAreaProvider>
           <SafeAreaView className="flex-1 bg-neutral-50">
-            <Stack>
-              <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-              <Stack.Screen name="product/[id]" options={{ headerShown: false }} />
-              <Stack.Screen name="service/[id]" options={{ headerShown: false }} />
-              <Stack.Screen name="order/[id]" options={{ headerShown: false }} />
-              <Stack.Screen name="add" options={{ headerShown: false }} />
-              <Stack.Screen name="login" options={{ headerShown: false }} />
-              <Stack.Screen name="register" options={{ headerShown: false }} />
-            </Stack>
-            <AppContent />
+            {isLoading ? (
+              <View style={{ flex: 1, backgroundColor: '#fff' }} />
+            ) : user ? (
+              <Stack>
+                <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+                <Stack.Screen name="product/[id]" options={{ headerShown: false }} />
+                <Stack.Screen name="service/[id]" options={{ headerShown: false }} />
+                <Stack.Screen name="order/[id]" options={{ headerShown: false }} />
+                <Stack.Screen name="add" options={{ headerShown: false }} />
+                <Stack.Screen name="login" options={{ headerShown: false }} />
+                <Stack.Screen name="register" options={{ headerShown: false }} />
+              </Stack>
+            ) : (
+              <Redirect href="/login" />
+            )}
             <Toast />
           </SafeAreaView>
         </SafeAreaProvider>
