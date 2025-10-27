@@ -7,7 +7,7 @@ const options = {
     info: {
       title: 'ElSoug API',
       version: '1.0.0',
-      description: 'RESTful API for ElSoug - Local Marketplace System for Egyptian Villages',
+      description: 'RESTful API for ElSoug - Local Marketplace System',
       contact: {
         name: 'ElSoug Team',
         email: 'support@elsoug.com'
@@ -41,7 +41,6 @@ const options = {
             name: { type: 'string' },
             phone: { type: 'string' },
             email: { type: 'string' },
-            village: { type: 'string' },
             avatar: { type: 'string' },
             isActive: { type: 'boolean' },
             role: { type: 'string', enum: ['user', 'admin'] },
@@ -58,7 +57,6 @@ const options = {
             category: { type: 'string' },
             images: { type: 'array', items: { type: 'string' } },
             seller: { type: 'string' },
-            village: { type: 'string' },
             isActive: { type: 'boolean' },
             views: { type: 'number' },
             createdAt: { type: 'string', format: 'date-time' }
@@ -72,7 +70,6 @@ const options = {
             description: { type: 'string' },
             category: { type: 'string' },
             provider: { type: 'string' },
-            village: { type: 'string' },
             isActive: { type: 'boolean' },
             createdAt: { type: 'string', format: 'date-time' }
           }

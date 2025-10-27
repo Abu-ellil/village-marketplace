@@ -17,11 +17,6 @@ const getAllStores = asyncHandler(async (req, res) => {
 
   const filter = { isActive: true };
 
-  // Filter by village
-  if (req.query.village) {
-    filter.village = req.query.village;
-  }
-
   // Filter by category
   if (req.query.category) {
     filter.categories = { $in: [req.query.category] };
@@ -89,7 +84,7 @@ const getAllStores = asyncHandler(async (req, res) => {
 const getStore = asyncHandler(async (req, res) => {
   const store = await Store.findById(req.params.id).populate(
     "owner",
-    "name email phone profilePicture village joinedAt"
+    "name email phone profilePicture joinedAt"
   );
 
   if (!store) {
@@ -130,14 +125,13 @@ const createStore = asyncHandler(async (req, res) => {
     throw new AppError("You already have a store", 400);
   }
 
-  // Check if store name is unique in the same village
+  // Check if store name is unique
   const nameExists = await Store.findOne({
     name: { $regex: new RegExp(`^${name}$`, "i") },
-    village: req.user.village,
   });
 
   if (nameExists) {
-    throw new AppError("Store name already exists in your village", 400);
+    throw new AppError("Store name already exists", 400);
   }
 
   const store = await Store.create({
@@ -145,7 +139,6 @@ const createStore = asyncHandler(async (req, res) => {
     description,
     categories,
     owner: req.user._id,
-    village: req.user.village,
     address: address || req.user.address,
     phone: phone || req.user.phone,
     email: email || req.user.email,
@@ -187,16 +180,15 @@ const updateStore = asyncHandler(async (req, res) => {
     throw new AppError("Not authorized to update this store", 403);
   }
 
-  // If updating name, check uniqueness in village
+  // If updating name, check uniqueness
   if (req.body.name && req.body.name !== store.name) {
     const nameExists = await Store.findOne({
       name: { $regex: new RegExp(`^${req.body.name}$`, "i") },
-      village: store.village,
       _id: { $ne: store._id },
     });
 
     if (nameExists) {
-      throw new AppError("Store name already exists in your village", 400);
+      throw new AppError("Store name already exists", 400);
     }
   }
 
@@ -487,7 +479,6 @@ const getStoreStats = asyncHandler(async (req, res) => {
 const searchStores = asyncHandler(async (req, res) => {
   const {
     q,
-    village,
     category,
     verified,
     sort,
@@ -504,11 +495,6 @@ const searchStores = asyncHandler(async (req, res) => {
       { description: { $regex: q, $options: "i" } },
       { categories: { $in: [new RegExp(q, "i")] } },
     ];
-  }
-
-  // Filter by village
-  if (village) {
-    filter.village = village;
   }
 
   // Filter by category

@@ -119,7 +119,7 @@ const requireVerification = (req, res, next) => {
 const requireCompleteProfile = (req, res, next) => {
   const user = req.user;
   
-  if (!user.name || !user.phoneNumber || !user.village) {
+  if (!user.name || !user.phoneNumber) {
     return next(new AppError('يجب إكمال الملف الشخصي أولاً', 403));
   }
   

@@ -6,14 +6,14 @@ import { useAuth } from '../context/AuthContext';
 import Header from '../components/Header';
 import Button from '../components/ui/Button';
 import { useToast } from '../context/ToastContext';
-import { API_BASE_URL } from '../utils/config';
 
 export default function Register() {
-  const [name, setName] = useState('');
+  const [firstName, setFirstName] = useState('');
+  const [lastName, setLastName] = useState('');
   const [phone, setPhone] = useState('');
   const [email, setEmail] = useState('');
-  const [address, setAddress] = useState('');
-  const [bio, setBio] = useState('');
+  const [password, setPassword] = useState('');
+  const [passwordConfirm, setPasswordConfirm] = useState('');
   const [location, setLocation] = useState<{ latitude: number; longitude: number } | null>(null);
 
   useEffect(() => {
@@ -39,26 +39,23 @@ export default function Register() {
       const { latitude, longitude } = locationData.coords;
       setLocation({ latitude, longitude });
 
-      // Reverse geocode to find address
-      const addresses = await Location.reverseGeocodeAsync({ latitude, longitude });
-      if (addresses.length > 0) {
-        const addr = addresses[0];
-        const formattedAddress = [addr.street, addr.city, addr.region, addr.postalCode, addr.country].filter(Boolean).join(', ');
-        setAddress(formattedAddress);
-      }
-
-      show('تم تحديد الموقع والعنوان بنجاح');
+      show('تم تحديد الموقع بنجاح');
     } catch (error) {
-      console.error('Error getting location or address:', error);
-      show('فشل في تحديد الموقع أو العنوان');
+      console.error('Error getting location:', error);
+      show('فشل في تحديد الموقع');
     } finally {
       setIsLocationLoading(false);
     }
   };
 
   const handleRegister = async () => {
-    if (!name || !phone || !email) {
-      show('الرجاء إدخال الاسم ورقم الهاتف والبريد الإلكتروني');
+    if (!firstName || !lastName || !phone || !email || !password || !passwordConfirm) {
+      show('الرجاء إدخال جميع الحقول المطلوبة');
+      return;
+    }
+
+    if (password !== passwordConfirm) {
+      show('كلمتا المرور غير متطابقتين');
       return;
     }
 
@@ -67,14 +64,20 @@ export default function Register() {
       return;
     }
 
+    const phoneRegex = /^(\+20|0)?1[0-9]{9}$/;
+    if (!phoneRegex.test(phone)) {
+      show('رقم الهاتف غير صحيح');
+      return;
+    }
+
     show('جاري معالجة طلب التسجيل...');
     
     const success = await register({
-      name,
+      firstName,
+      lastName,
       phone,
       email,
-      address,
-      bio: bio || undefined,
+      password,
       coordinates: [location.longitude, location.latitude],
     });
 
@@ -94,15 +97,23 @@ export default function Register() {
 
         <TextInput
           className="w-full p-3 bg-white rounded-lg mb-4 border border-gray-300"
-          placeholder="الاسم الكامل *"
-          value={name}
-          onChangeText={setName}
+          placeholder="الاسم الأول *"
+          value={firstName}
+          onChangeText={setFirstName}
           autoCapitalize="words"
         />
 
         <TextInput
           className="w-full p-3 bg-white rounded-lg mb-4 border border-gray-300"
-          placeholder="رقم الهاتف * (مثال: 01234567890)"
+          placeholder="الاسم الأخير *"
+          value={lastName}
+          onChangeText={setLastName}
+          autoCapitalize="words"
+        />
+
+        <TextInput
+          className="w-full p-3 bg-white rounded-lg mb-4 border border-gray-300"
+          placeholder="رقم الهاتف * (مثال: 01234567890 أو +201234567890)"
           value={phone}
           onChangeText={setPhone}
           keyboardType="phone-pad"
@@ -120,19 +131,20 @@ export default function Register() {
 
         <TextInput
           className="w-full p-3 bg-white rounded-lg mb-4 border border-gray-300"
-          placeholder="العنوان التفصيلي"
-          value={address}
-          onChangeText={setAddress}
-          multiline
+          placeholder="كلمة المرور *"
+          value={password}
+          onChangeText={setPassword}
+          secureTextEntry
+          autoCapitalize="none"
         />
 
         <TextInput
           className="w-full p-3 bg-white rounded-lg mb-4 border border-gray-300"
-          placeholder="نبذة عنك (اختياري)"
-          value={bio}
-          onChangeText={setBio}
-          multiline
-          numberOfLines={3}
+          placeholder="تأكيد كلمة المرور *"
+          value={passwordConfirm}
+          onChangeText={setPasswordConfirm}
+          secureTextEntry
+          autoCapitalize="none"
         />
 
         <TouchableOpacity

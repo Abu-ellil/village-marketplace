@@ -2,6 +2,100 @@ const mongoose = require('mongoose');
 const bcrypt = require('bcryptjs');
 const crypto = require('crypto');
 
+// Address Schema
+const addressSchema = new mongoose.Schema({
+  label: {
+    type: String,
+    required: [true, 'تسمية العنوان مطلوبة'],
+    enum: ['home', 'work', 'other'],
+    default: 'home'
+  },
+  
+  customLabel: {
+    type: String,
+    trim: true,
+    maxlength: [30, 'التسمية المخصصة لا يجب أن تتجاوز 30 حرف']
+  },
+  
+  street: {
+    type: String,
+    required: [true, 'اسم الشارع مطلوب'],
+    trim: true,
+    maxlength: [100, 'اسم الشارع لا يجب أن يتجاوز 100 حرف']
+  },
+  
+  building: {
+    type: String,
+    trim: true,
+    maxlength: [50, 'رقم المبنى لا يجب أن يتجاوز 50 حرف']
+  },
+  
+  floor: {
+    type: String,
+    trim: true,
+    maxlength: [20, 'رقم الطابق لا يجب أن يتجاوز 20 حرف']
+  },
+  
+  apartment: {
+    type: String,
+    trim: true,
+    maxlength: [20, 'رقم الشقة لا يجب أن يتجاوز 20 حرف']
+  },
+  
+  city: {
+    type: String,
+    required: [true, 'المدينة مطلوبة'],
+    trim: true,
+    maxlength: [50, 'اسم المدينة لا يجب أن يتجاوز 50 حرف']
+  },
+  
+  district: {
+    type: String,
+    trim: true,
+    maxlength: [50, 'اسم الحي لا يجب أن يتجاوز 50 حرف']
+  },
+  
+  governorate: {
+    type: String,
+    required: [true, 'المحافظة مطلوبة'],
+    trim: true
+  },
+  
+  postalCode: {
+    type: String,
+    trim: true,
+    match: [/^\d{5}$/, 'الرمز البريدي غير صحيح']
+  },
+  
+  location: {
+    type: {
+      type: String,
+      enum: ['Point'],
+      default: 'Point'
+    },
+    coordinates: {
+      type: [Number], // [longitude, latitude]
+    }
+  },
+  
+  isDefault: {
+    type: Boolean,
+    default: false
+  },
+  
+  additionalInfo: {
+    type: String,
+    maxlength: [200, 'المعلومات الإضافية لا يجب أن تتجاوز 200 حرف']
+  },
+  
+  createdAt: {
+    type: Date,
+    default: Date.now
+  }
+}, {
+  _id: true
+});
+
 const userSchema = new mongoose.Schema({
   // Basic Information
   name: {
@@ -15,7 +109,7 @@ const userSchema = new mongoose.Schema({
     type: String,
     required: [true, 'رقم الهاتف مطلوب'],
     unique: true,
-    match: [/^(\+201|01)[0-9]{9}$/, 'رقم الهاتف غير صحيح']
+    match: [/^(\+20|0)?1[0-9]{9}$/, 'رقم الهاتف غير صحيح']
   },
   
   email: {
@@ -39,14 +133,16 @@ const userSchema = new mongoose.Schema({
     maxlength: [200, 'الوصف لا يجب أن يتجاوز 200 حرف']
   },
   
-  // Location Information
-
+  // Multiple Addresses
+  addresses: [addressSchema],
   
+  // Legacy address field (kept for backward compatibility)
   address: {
     type: String,
     maxlength: [100, 'العنوان لا يجب أن يتجاوز 100 حرف']
   },
   
+  // Legacy location field (kept for backward compatibility)
   location: {
     type: {
       type: String,
@@ -205,6 +301,7 @@ const userSchema = new mongoose.Schema({
 // Indexes
 userSchema.index({ phone: 1 });
 userSchema.index({ location: '2dsphere' });
+userSchema.index({ 'addresses.location': '2dsphere' });
 userSchema.index({ isActive: 1, isVerified: 1 });
 userSchema.index({ createdAt: -1 });
 
@@ -229,6 +326,25 @@ userSchema.virtual('reviews', {
   foreignField: 'reviewee'
 });
 
+// Pre-save middleware to ensure only one default address
+userSchema.pre('save', function(next) {
+  if (this.addresses && this.addresses.length > 0) {
+    const defaultAddresses = this.addresses.filter(addr => addr.isDefault);
+    if (defaultAddresses.length > 1) {
+      // Keep only the first default address
+      this.addresses.forEach((addr, index) => {
+        if (index > 0 && addr.isDefault) {
+          addr.isDefault = false;
+        }
+      });
+    } else if (defaultAddresses.length === 0 && this.addresses.length > 0) {
+      // Set the first address as default if no default exists
+      this.addresses[0].isDefault = true;
+    }
+  }
+  next();
+});
+
 // Pre-save middleware to update timestamps
 userSchema.pre('save', function(next) {
   this.updatedAt = Date.now();
@@ -242,6 +358,53 @@ userSchema.pre('save', async function(next) {
   this.password = await bcrypt.hash(this.password, 12);
   next();
 });
+
+// Instance method to add address
+userSchema.methods.addAddress = function(addressData) {
+  if (addressData.isDefault) {
+    this.addresses.forEach(addr => addr.isDefault = false);
+  }
+  this.addresses.push(addressData);
+  return this.save();
+};
+
+// Instance method to update address
+userSchema.methods.updateAddress = function(addressId, addressData) {
+  const address = this.addresses.id(addressId);
+  if (!address) throw new Error('العنوان غير موجود');
+  
+  if (addressData.isDefault) {
+    this.addresses.forEach(addr => {
+      if (addr._id.toString() !== addressId) {
+        addr.isDefault = false;
+      }
+    });
+  }
+  
+  Object.assign(address, addressData);
+  return this.save();
+};
+
+// Instance method to delete address
+userSchema.methods.deleteAddress = function(addressId) {
+  const address = this.addresses.id(addressId);
+  if (!address) throw new Error('العنوان غير موجود');
+  
+  const wasDefault = address.isDefault;
+  address.remove();
+  
+  // If deleted address was default, set first address as default
+  if (wasDefault && this.addresses.length > 0) {
+    this.addresses[0].isDefault = true;
+  }
+  
+  return this.save();
+};
+
+// Instance method to get default address
+userSchema.methods.getDefaultAddress = function() {
+  return this.addresses.find(addr => addr.isDefault);
+};
 
 // Instance method to check password
 userSchema.methods.correctPassword = async function(candidatePassword, userPassword) {
@@ -283,15 +446,30 @@ userSchema.methods.updateLastActive = function() {
 // Static method to find users near a location
 userSchema.statics.findNearby = function(coordinates, maxDistance = 10000) {
   return this.find({
-    location: {
-      $near: {
-        $geometry: {
-          type: 'Point',
-          coordinates: coordinates
-        },
-        $maxDistance: maxDistance
+    $or: [
+      {
+        location: {
+          $near: {
+            $geometry: {
+              type: 'Point',
+              coordinates: coordinates
+            },
+            $maxDistance: maxDistance
+          }
+        }
+      },
+      {
+        'addresses.location': {
+          $near: {
+            $geometry: {
+              type: 'Point',
+              coordinates: coordinates
+            },
+            $maxDistance: maxDistance
+          }
+        }
       }
-    },
+    ],
     isActive: true,
     isVerified: true
   });

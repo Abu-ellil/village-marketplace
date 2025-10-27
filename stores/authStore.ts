@@ -15,7 +15,7 @@ interface AuthState {
   user: User | null;
   isLoading: boolean;
   login: (email: string, password: string) => Promise<boolean>;
-  register: (userData: { name: string; phone: string; email: string; address?: string; bio?: string; coordinates: [number, number]; }) => Promise<boolean>;
+  register: (userData: { firstName: string; lastName: string; phone: string; email: string; password: string; coordinates: [number, number]; }) => Promise<boolean>;
   sendOTP: (phone: string) => Promise<boolean>;
   verifyOTP: (phone: string, otp: string) => Promise<boolean>;
   completeProfile: (profileData: any) => Promise<boolean>;

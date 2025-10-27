@@ -60,7 +60,6 @@ const seed = async () => {
         active: true,
         // Add required fields
         seller: new mongoose.Types.ObjectId(), // Temporary ID for seller
-        village: new mongoose.Types.ObjectId(), // Temporary ID for village
         stock: item.stock || 50,
         location: { type: "Point", coordinates: [30.0444, 31.2357] }, // Default Cairo coordinates
         currency: "EGP",
@@ -90,7 +89,6 @@ const seed = async () => {
         active: true,
         // Add required fields
         provider: new mongoose.Types.ObjectId(), // Temporary ID for provider
-        village: new mongoose.Types.ObjectId(), // Temporary ID for village
         location: { type: "Point", coordinates: [30.0444, 31.2357] }, // Default Cairo coordinates
         isAvailable: true
       }));

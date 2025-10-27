@@ -170,7 +170,7 @@ const deleteService = asyncHandler(async (req, res) => {
 // @route   GET /api/services/search
 // @access  Public
 const searchServices = asyncHandler(async (req, res) => {
-  const { search, category, village, minPrice, maxPrice, serviceType, sort } =
+  const { search, category, minPrice, maxPrice, serviceType, sort } =
     req.query;
 
   let query = { status: "active" };
@@ -189,17 +189,12 @@ const searchServices = asyncHandler(async (req, res) => {
     query.category = category;
   }
 
-  // Village filter
-  if (village) {
-    query.village = village;
-  }
-
   // Price range filter (using base price from pricing)
   if (minPrice || maxPrice) {
     const priceQuery = {};
     if (minPrice) priceQuery.$gte = parseFloat(minPrice);
     if (maxPrice) priceQuery.$lte = parseFloat(maxPrice);
-    query["pricing.basePrice"] = priceQuery;
+    query["pricing.amount"] = priceQuery;
   }
 
   // Service type filter
@@ -210,16 +205,16 @@ const searchServices = asyncHandler(async (req, res) => {
   let sortOptions = {};
   switch (sort) {
     case "price_asc":
-      sortOptions = { "pricing.basePrice": 1 };
+      sortOptions = { "pricing.amount": 1 };
       break;
     case "price_desc":
-      sortOptions = { "pricing.basePrice": -1 };
+      sortOptions = { "pricing.amount": -1 };
       break;
     case "newest":
       sortOptions = { createdAt: -1 };
       break;
     case "popular":
-      sortOptions = { "statistics.viewsCount": -1 };
+      sortOptions = { "views": -1 };
       break;
     case "rating":
       sortOptions = { "rating.average": -1 };
@@ -232,7 +227,6 @@ const searchServices = asyncHandler(async (req, res) => {
     Service.find(query)
       .populate("provider", "name avatar")
       .populate("category", "name nameEn")
-      .populate("village", "name nameEn")
       .sort(sortOptions),
     req.query
   )
@@ -274,8 +268,7 @@ const getServicesByCategory = asyncHandler(async (req, res) => {
       status: "active",
     })
       .populate("provider", "name avatar")
-      .populate("category", "name nameEn")
-      .populate("village", "name nameEn"),
+      .populate("category", "name nameEn"),
     req.query
   )
     .filter()
@@ -316,7 +309,6 @@ const getFeaturedServices = asyncHandler(async (req, res) => {
   })
     .populate("provider", "name avatar")
     .populate("category", "name nameEn")
-    .populate("village", "name nameEn")
     .sort({ createdAt: -1 })
     .limit(parseInt(req.query.limit) || 10);
 
@@ -337,21 +329,15 @@ const getSimilarServices = asyncHandler(async (req, res) => {
     _id: { $ne: req.params.id },
     category: service.category,
     status: "active",
-    $or: [
-      { village: service.village },
-      {
-        "pricing.basePrice": {
-          $gte: service.pricing.basePrice * 0.8,
-          $lte: service.pricing.basePrice * 1.2,
-        },
-      },
-    ],
+    "pricing.amount": {
+      $gte: service.pricing.amount * 0.8,
+      $lte: service.pricing.amount * 1.2,
+    },
   })
     .populate("provider", "name avatar")
     .populate("category", "name nameEn")
-    .populate("village", "name nameEn")
     .limit(parseInt(req.query.limit) || 6)
-    .sort({ "statistics.viewsCount": -1 });
+    .sort({ "views": -1 });
 
   res.json(ApiResponse.success(similarServices, "خدمات مشابهة"));
 });
@@ -440,28 +426,6 @@ const getServiceStatistics = asyncHandler(async (req, res) => {
     { $sort: { count: -1 } },
   ]);
 
-  const servicesByVillage = await Service.aggregate([
-    { $match: matchCondition },
-    {
-      $lookup: {
-        from: "villages",
-        localField: "village",
-        foreignField: "_id",
-        as: "villageInfo",
-      },
-    },
-    { $unwind: "$villageInfo" },
-    {
-      $group: {
-        _id: "$village",
-        villageName: { $first: "$villageInfo.name" },
-        count: { $sum: 1 },
-      },
-    },
-    { $sort: { count: -1 } },
-    { $limit: 10 },
-  ]);
-
   const recentServices = await Service.find(matchCondition)
     .sort({ createdAt: -1 })
     .limit(10)
@@ -478,7 +442,6 @@ const getServiceStatistics = asyncHandler(async (req, res) => {
         draftServices: totalServices - activeServices - completedServices,
         servicesByCategory,
         servicesByType,
-        servicesByVillage,
         recentServices,
       },
       "إحصائيات الخدمات"

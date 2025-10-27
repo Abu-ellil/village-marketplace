@@ -28,7 +28,6 @@ const storeRoutes = require("../routes/stores");
 const orderRoutes = require("../routes/orders");
 const messageRoutes = require("../routes/messages");
 const reviewRoutes = require("../routes/reviews");
-const villageRoutes = require("../routes/villages");
 const notificationRoutes = require("../routes/notifications");
 const categoryRoutes = require("../routes/categories");
 const uploadRoutes = require("../routes/upload");
@@ -147,7 +146,6 @@ app.use(`/api/${API_VERSION}/stores`, storeRoutes);
 app.use(`/api/${API_VERSION}/orders`, orderRoutes);
 app.use(`/api/${API_VERSION}/messages`, messageRoutes);
 app.use(`/api/${API_VERSION}/reviews`, reviewRoutes);
-app.use(`/api/${API_VERSION}/villages`, villageRoutes);
 app.use(`/api/${API_VERSION}/notifications`, notificationRoutes);
 app.use(`/api/${API_VERSION}/categories`, categoryRoutes);
 app.use(`/api/${API_VERSION}/upload`, uploadRoutes);
@@ -157,7 +155,7 @@ app.use(`/api/${API_VERSION}/test`, testRoutes);
 app.get("/", (req, res) => {
   res.status(200).json({
     success: true,
-    message: "مرحباً بك في ElSoug API - نظام السوق المحلي للقرى المصرية",
+    message: "مرحباً بك في ElSoug API - نظام السوق المحلي",
     version: API_VERSION,
     endpoints: {
       health: "/health",
@@ -169,7 +167,6 @@ app.get("/", (req, res) => {
       orders: `/api/${API_VERSION}/orders`,
       messages: `/api/${API_VERSION}/messages`,
       reviews: `/api/${API_VERSION}/reviews`,
-      villages: `/api/${API_VERSION}/villages`,
       notifications: `/api/${API_VERSION}/notifications`,
       categories: `/api/${API_VERSION}/categories`,
       upload: `/api/${API_VERSION}/upload`,

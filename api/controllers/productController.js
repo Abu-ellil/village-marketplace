@@ -13,8 +13,7 @@ const getProducts = asyncHandler(async (req, res) => {
   const features = new ApiFeatures(
     Product.find({ status: "active" })
       .populate("seller", "name avatar")
-      .populate("category", "name nameEn")
-      .populate("village", "name nameEn"),
+      .populate("category", "name nameEn"),
     req.query
   )
     .filter()
@@ -49,9 +48,8 @@ const getProducts = asyncHandler(async (req, res) => {
 // @access  Public
 const getProduct = asyncHandler(async (req, res) => {
   const product = await Product.findById(req.params.id)
-    .populate("seller", "name avatar phone email village")
+    .populate("seller", "name avatar phone email")
     .populate("category", "name nameEn")
-    .populate("village", "name nameEn governorate")
     .populate({
       path: "reviews",
       populate: {
@@ -76,7 +74,6 @@ const getProduct = asyncHandler(async (req, res) => {
 const createProduct = asyncHandler(async (req, res) => {
   // Add seller from authenticated user
   req.body.seller = req.user._id;
-  req.body.village = req.user.village;
 
   // Validate category exists
   if (req.body.category) {
@@ -93,7 +90,6 @@ const createProduct = asyncHandler(async (req, res) => {
   await product.populate([
     { path: "seller", select: "name avatar" },
     { path: "category", select: "name nameEn" },
-    { path: "village", select: "name nameEn" },
   ]);
 
   res.status(201).json(ApiResponse.success(product, "تم إنشاء المنتج بنجاح"));
@@ -129,9 +125,8 @@ const updateProduct = asyncHandler(async (req, res) => {
     }
   }
 
-  // Don't allow changing seller or village
+  // Don't allow changing seller
   delete req.body.seller;
-  delete req.body.village;
 
   product = await Product.findByIdAndUpdate(req.params.id, req.body, {
     new: true,
@@ -139,7 +134,6 @@ const updateProduct = asyncHandler(async (req, res) => {
   }).populate([
     { path: "seller", select: "name avatar" },
     { path: "category", select: "name nameEn" },
-    { path: "village", select: "name nameEn" },
   ]);
 
   res.json(ApiResponse.success(product, "تم تحديث المنتج بنجاح"));
@@ -176,7 +170,7 @@ const deleteProduct = asyncHandler(async (req, res) => {
 // @route   GET /api/products/search
 // @access  Public
 const searchProducts = asyncHandler(async (req, res) => {
-  const { search, category, village, minPrice, maxPrice, condition, sort } =
+  const { search, category, minPrice, maxPrice, condition, sort } =
     req.query;
 
   let query = { status: "active" };
@@ -193,11 +187,6 @@ const searchProducts = asyncHandler(async (req, res) => {
   // Category filter
   if (category) {
     query.category = category;
-  }
-
-  // Village filter
-  if (village) {
-    query.village = village;
   }
 
   // Price range filter
@@ -234,7 +223,6 @@ const searchProducts = asyncHandler(async (req, res) => {
     Product.find(query)
       .populate("seller", "name avatar")
       .populate("category", "name nameEn")
-      .populate("village", "name nameEn")
       .sort(sortOptions),
     req.query
   )
@@ -276,8 +264,7 @@ const getProductsByCategory = asyncHandler(async (req, res) => {
       status: "active",
     })
       .populate("seller", "name avatar")
-      .populate("category", "name nameEn")
-      .populate("village", "name nameEn"),
+      .populate("category", "name nameEn"),
     req.query
   )
     .filter()
@@ -318,7 +305,6 @@ const getFeaturedProducts = asyncHandler(async (req, res) => {
   })
     .populate("seller", "name avatar")
     .populate("category", "name nameEn")
-    .populate("village", "name nameEn")
     .sort({ createdAt: -1 })
     .limit(parseInt(req.query.limit) || 10);
 
@@ -339,19 +325,13 @@ const getSimilarProducts = asyncHandler(async (req, res) => {
     _id: { $ne: req.params.id },
     category: product.category,
     status: "active",
-    $or: [
-      { village: product.village },
-      {
-        price: {
-          $gte: product.price * 0.8,
-          $lte: product.price * 1.2,
-        },
-      },
-    ],
+    price: {
+      $gte: product.price * 0.8,
+      $lte: product.price * 1.2,
+    },
   })
     .populate("seller", "name avatar")
     .populate("category", "name nameEn")
-    .populate("village", "name nameEn")
     .limit(parseInt(req.query.limit) || 6)
     .sort({ "statistics.viewsCount": -1 });
 
@@ -431,28 +411,6 @@ const getProductStatistics = asyncHandler(async (req, res) => {
     { $sort: { count: -1 } },
   ]);
 
-  const productsByVillage = await Product.aggregate([
-    { $match: matchCondition },
-    {
-      $lookup: {
-        from: "villages",
-        localField: "village",
-        foreignField: "_id",
-        as: "villageInfo",
-      },
-    },
-    { $unwind: "$villageInfo" },
-    {
-      $group: {
-        _id: "$village",
-        villageName: { $first: "$villageInfo.name" },
-        count: { $sum: 1 },
-      },
-    },
-    { $sort: { count: -1 } },
-    { $limit: 10 },
-  ]);
-
   const recentProducts = await Product.find(matchCondition)
     .sort({ createdAt: -1 })
     .limit(10)
@@ -468,7 +426,6 @@ const getProductStatistics = asyncHandler(async (req, res) => {
         soldProducts,
         draftProducts: totalProducts - activeProducts - soldProducts,
         productsByCategory,
-        productsByVillage,
         recentProducts,
       },
       "إحصائيات المنتجات"

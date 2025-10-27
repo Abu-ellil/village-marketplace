@@ -9,14 +9,14 @@ const { generateOTP, hashOTP, verifyOTP, sendOTP } = require('../utils/otp');
  * Register new user with complete profile
  */
 const register = asyncHandler(async (req, res, next) => {
-  const { name, phone, email, address, bio, coordinates } = req.body;
+  const { firstName, lastName, email, phone, password, coordinates } = req.body;
 
-  if (!name || !phone || !coordinates) {
-    return next(new AppError('الاسم ورقم الهاتف وإحداثيات الموقع مطلوبة', 400));
+  if (!firstName || !lastName || !phone || !password || !coordinates) {
+    return next(new AppError('الاسم الأول والأخير ورقم الهاتف وكلمة المرور وإحداثيات الموقع مطلوبة', 400));
   }
 
-  // Validate phone number format
-  const phoneRegex = /^(\+201|01)[0-9]{9}$/;
+  // Validate phone number format - accept various formats including Egyptian numbers
+  const phoneRegex = /^(\+20|0)?1[0-9]{9}$/;
   if (!phoneRegex.test(phone)) {
     return next(new AppError('رقم الهاتف غير صحيح', 400));
   }
@@ -29,18 +29,14 @@ const register = asyncHandler(async (req, res, next) => {
 
   // Create user with complete profile
   const user = await User.create({
-    name,
+    name: `${firstName} ${lastName}`,
     phone,
     email,
-    address,
-    bio,
+    password,
     location: {
       type: 'Point',
       coordinates: coordinates
-    },
-    isPhoneVerified: true,
-    isVerified: true,
-    isActive: true
+    }
   });
 
   // Create and send token
@@ -57,8 +53,8 @@ const sendPhoneOTP = asyncHandler(async (req, res, next) => {
     return next(new AppError('رقم الهاتف مطلوب', 400));
   }
 
-  // Validate phone number format
-  const phoneRegex = /^(\+201|01)[0-9]{9}$/;
+  // Validate phone number format - accept various formats including Egyptian numbers
+  const phoneRegex = /^(\+20|0)?1[0-9]{9}$/;
   if (!phoneRegex.test(phoneNumber)) {
     return next(new AppError('رقم الهاتف غير صحيح', 400));
   }

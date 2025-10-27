@@ -3,7 +3,6 @@ const dotenv = require('dotenv');
 const Product = require('../models/Product');
 const Service = require('../models/Service');
 const Category = require('../models/Category');
-const Village = require('../models/Village');
 const User = require('../models/User');
 
 dotenv.config();
@@ -24,7 +23,6 @@ const quickSeed = async () => {
     await Product.deleteMany({});
     await Service.deleteMany({});
     await Category.deleteMany({});
-    await Village.deleteMany({});
     await User.deleteMany({});
 
     // Create a basic village first

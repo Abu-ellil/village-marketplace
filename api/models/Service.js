@@ -77,6 +77,7 @@ const serviceSchema = new mongoose.Schema({
       default: 5, // km
       min: [0, 'نطاق الخدمة لا يمكن أن يكون سالب']
     }
+  },
   
   // Pricing
   pricing: {

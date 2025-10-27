@@ -80,11 +80,11 @@ const storeSchema = new mongoose.Schema({
     phone: {
       type: String,
       required: [true, 'رقم الهاتف مطلوب'],
-      match: [/^(\+201|01)[0-9]{9}$/, 'رقم الهاتف غير صحيح']
+      match: [/^(\+20|0)?1[0-9]{9}$/, 'رقم الهاتف غير صحيح']
     },
     whatsapp: {
       type: String,
-      match: [/^(\+201|01)[0-9]{9}$/, 'رقم الواتساب غير صحيح']
+      match: [/^(\+20|0)?1[0-9]{9}$/, 'رقم الواتساب غير صحيح']
     },
     email: {
       type: String,

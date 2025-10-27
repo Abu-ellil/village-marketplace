@@ -32,7 +32,6 @@ const storeRoutes = require('./routes/stores');
 const orderRoutes = require('./routes/orders');
 const messageRoutes = require('./routes/messages');
 const reviewRoutes = require('./routes/reviews');
-const villageRoutes = require('./routes/villages');
 const notificationRoutes = require('./routes/notifications');
 const categoryRoutes = require('./routes/categories');
 const uploadRoutes = require('./routes/upload');
@@ -147,7 +146,6 @@ app.use(`/api/${API_VERSION}/stores`, storeRoutes);
 app.use(`/api/${API_VERSION}/orders`, orderRoutes);
 app.use(`/api/${API_VERSION}/messages`, messageRoutes);
 app.use(`/api/${API_VERSION}/reviews`, reviewRoutes);
-app.use(`/api/${API_VERSION}/villages`, villageRoutes);
 app.use(`/api/${API_VERSION}/notifications`, notificationRoutes);
 app.use(`/api/${API_VERSION}/categories`, categoryRoutes);
 app.use(`/api/${API_VERSION}/upload`, uploadRoutes);
@@ -160,7 +158,7 @@ app.use(`/api/${API_VERSION}/docs`, swaggerUi.serve, swaggerUi.setup(specs, swag
 app.get(`/api/${API_VERSION}`, (req, res) => {
   res.status(200).json({
     success: true,
-    message: 'ElSoug API - السوق المحلي للقرى المصرية 🇪🇬',
+    message: 'ElSoug API - السوق المحلي 🇪🇬',
     version: '1.0.0',
     documentation: `${req.protocol}://${req.get('host')}/api/${API_VERSION}/docs`,
     endpoints: {
@@ -172,7 +170,6 @@ app.get(`/api/${API_VERSION}`, (req, res) => {
       orders: `${req.protocol}://${req.get('host')}/api/${API_VERSION}/orders`,
       messages: `${req.protocol}://${req.get('host')}/api/${API_VERSION}/messages`,
       reviews: `${req.protocol}://${req.get('host')}/api/${API_VERSION}/reviews`,
-      villages: `${req.protocol}://${req.get('host')}/api/${API_VERSION}/villages`,
       notifications: `${req.protocol}://${req.get('host')}/api/${API_VERSION}/notifications`,
       categories: `${req.protocol}://${req.get('host')}/api/${API_VERSION}/categories`,
       upload: `${req.protocol}://${req.get('host')}/api/${API_VERSION}/upload`
@@ -198,7 +195,6 @@ app.get('/', (req, res) => {
       orders: `${req.protocol}://${req.get('host')}/api/${API_VERSION}/orders`,
       messages: `${req.protocol}://${req.get('host')}/api/${API_VERSION}/messages`,
       reviews: `${req.protocol}://${req.get('host')}/api/${API_VERSION}/reviews`,
-      villages: `${req.protocol}://${req.get('host')}/api/${API_VERSION}/villages`,
       notifications: `${req.protocol}://${req.get('host')}/api/${API_VERSION}/notifications`
     }
   });

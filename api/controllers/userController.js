@@ -18,7 +18,7 @@ const getAllUsers = asyncHandler(async (req, res, next) => {
     .limitFields()
     .paginate();
 
-  const users = await features.query.populate('village', 'name governorate');
+  const users = await features.query;
   const total = await User.countDocuments();
 
   res.status(200).json(
@@ -36,7 +36,6 @@ const getAllUsers = asyncHandler(async (req, res, next) => {
  */
 const getUserById = asyncHandler(async (req, res, next) => {
   const user = await User.findById(req.params.id)
-    .populate('village', 'name governorate')
     .populate({
       path: 'products',
       select: 'name price images category isActive'
@@ -72,7 +71,7 @@ const updateUser = asyncHandler(async (req, res, next) => {
     req.params.id,
     updates,
     { new: true, runValidators: true }
-  ).populate('village', 'name governorate');
+  );
 
   if (!user) {
     return next(new AppError('لم يتم العثور على المستخدم', 404));
@@ -226,7 +225,7 @@ const getUserReviews = asyncHandler(async (req, res, next) => {
  * Search users
  */
 const searchUsers = asyncHandler(async (req, res, next) => {
-  const { q, role, village, isActive } = req.query;
+  const { q, role, isActive } = req.query;
 
   let query = {};
 
@@ -239,7 +238,6 @@ const searchUsers = asyncHandler(async (req, res, next) => {
   }
 
   if (role) query.role = role;
-  if (village) query.village = village;
   if (isActive !== undefined) query.isActive = isActive === 'true';
 
   const features = new ApiFeatures(User.find(query), req.query)
@@ -247,7 +245,7 @@ const searchUsers = asyncHandler(async (req, res, next) => {
     .limitFields()
     .paginate();
 
-  const users = await features.query.populate('village', 'name governorate');
+  const users = await features.query;
   const total = await User.countDocuments(query);
 
   res.status(200).json(

@@ -33,11 +33,6 @@ const getAllOrders = asyncHandler(async (req, res) => {
     filter.orderType = req.query.orderType;
   }
 
-  // Filter by village
-  if (req.query.village) {
-    filter.village = req.query.village;
-  }
-
   // Date range filter
   if (req.query.startDate || req.query.endDate) {
     filter.createdAt = {};
@@ -131,8 +126,8 @@ const getMyOrders = asyncHandler(async (req, res) => {
 // @access  Private
 const getOrder = asyncHandler(async (req, res) => {
   const order = await Order.findById(req.params.id)
-    .populate("buyer", "name email phone profilePicture village")
-    .populate("seller", "name email phone profilePicture village")
+    .populate("buyer", "name email phone profilePicture")
+    .populate("seller", "name email phone profilePicture")
     .populate("product", "title description price images category condition")
     .populate("service", "title description price images category serviceType");
 
@@ -223,7 +218,6 @@ const createOrder = asyncHandler(async (req, res) => {
     deliveryAddress: deliveryAddress || req.user.address,
     paymentMethod: paymentMethod || "cash",
     notes,
-    village: req.user.village,
   };
 
   if (orderType === "product") {
