@@ -130,7 +130,7 @@ export const useAuthStore = create<AuthState>()((set, get) => ({
     set({ isLoading: true });
     try {
       const response = await axios.post(`${API_BASE_URL}/auth/register`, userData);
-      const { token, user: userDataResponse } = response.data;
+      const { token, data: { user: userDataResponse } } = response.data;
 
       const newUser: User = { ...userDataResponse, token };
       await AsyncStorage.setItem(USER_STORAGE_KEY, JSON.stringify(userDataResponse));

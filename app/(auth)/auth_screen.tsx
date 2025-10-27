@@ -166,7 +166,9 @@ const AuthScreen = ({ initialIsLogin = true }) => {
         visibilityTime: 2000,
       });
       // Navigate to home screen after successful login
-      router.replace('/(tabs)/index');
+      setTimeout(() => {
+        router.replace('/(tabs)/index');
+      }, 100);
     } else {
       // The auth store will show a specific error toast
       // but we can show a generic one here if needed, or just rely on the store's toast.
