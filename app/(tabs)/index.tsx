@@ -13,6 +13,7 @@ import SearchBar from '../../components/SearchBar';
 import ShopBar from '../../components/ShopBar';
 import { FlashList } from '@shopify/flash-list';
 import { ProductCardSkeleton, ServiceCardSkeleton } from '../../components/ui/CardSkeletons';
+import FancyProductList from '../../components/FancyProductList'; // Import FancyProductList
 
 export default function TabOneScreen() {
   const { data: products, isLoading: isLoadingProducts, isError: isErrorProducts } = useProducts();
@@ -122,16 +123,7 @@ export default function TabOneScreen() {
           onSelectCategory={setActiveCategory}
         />
 
-        <View className="mt-4">
-          <Text className="text-xl font-bold px-4 mb-2">Products ({productsToDisplay?.length || 0})</Text>
-          <FlashList
-            data={productsToDisplay || []}
-            renderItem={({ item }) => <ProductCard product={item} onAddToCart={addToCart} />}
-            keyExtractor={(item) => item.id.toString()}
-            numColumns={2}
-          />
-        </View>
-
+        <FancyProductList productsToDisplay={productsToDisplay} addToCart={addToCart} />
         
       </ScrollView>
     </SafeAreaView>

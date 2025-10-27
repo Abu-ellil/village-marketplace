@@ -131,10 +131,10 @@ export default function RootLayout() {
   }
 
   return (
-    <QueryClientProvider client={queryClient}>
+    <CartProvider>
+      <QueryClientProvider client={queryClient}>
         <SafeAreaProvider>
           <SafeAreaView className="flex-1 bg-neutral-50">
-            <CartProvider>
             {isLoading ? (
               <View style={{ flex: 1, backgroundColor: '#fff' }} />
             ) : user ? (
@@ -151,10 +151,10 @@ export default function RootLayout() {
               <Redirect href="/login" />
             )}
             <Toast />
-            </CartProvider>
           </SafeAreaView>
         </SafeAreaProvider>
-    </QueryClientProvider>
+      </QueryClientProvider>
+    </CartProvider>
   );
 }
 
