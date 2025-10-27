@@ -66,3 +66,6 @@ export const getDebugInfo = () => ({
   isDev: __DEV__,
   expoConfig: Constants.expoConfig?.hostUri,
 });
+
+// Default export - returning the API_BASE_URL as default
+export default API_BASE_URL;

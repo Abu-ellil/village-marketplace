@@ -12,26 +12,96 @@ import {
 import Toast from 'react-native-toast-message';
 import { Ionicons } from '@expo/vector-icons';
 import { API_BASE_URL } from '../../utils/config';
-import { AuthNavigationProps } from '../../types/navigation';
 import { useAuth } from '../../context/AuthContext';
+import { useLocalSearchParams, useRouter, useSegments } from 'expo-router';
+import * as Location from 'expo-location';
+import { Alert } from 'react-native';
+import { reverseGeocodeAsync } from 'expo-location';
 
-const AuthScreen = () => {
-  const [isLogin, setIsLogin] = useState(true);
+interface FormData {
+  firstName: string;
+  lastName: string;
+  phone: string;
+  email: string;
+  password: string;
+  confirmPassword: string;
+  coordinates: number[] | null;
+  address: string | null;
+}
+
+const AuthScreen = ({ initialIsLogin = true }) => {
+  const router = useRouter();
+  const auth = useAuth();
+  const [isLogin, setIsLogin] = useState(initialIsLogin);
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   
   // Form states
-  const [formData, setFormData] = useState({
-    name: '',
+  const [formData, setFormData] = useState<FormData>({
+    firstName: '',
+    lastName: '',
     phone: '',
     email: '',
     password: '',
     confirmPassword: '',
+    coordinates: null,
+    address: null,
   });
 
   // Handle input changes
   const handleChange = (field, value) => {
     setFormData(prev => ({ ...prev, [field]: value }));
+  };
+
+  // Get current location using GPS
+  const getCurrentLocation = async () => {
+    try {
+      // Request permission to access location
+      let { status } = await Location.requestForegroundPermissionsAsync();
+      if (status !== 'granted') {
+        Alert.alert('خطأ', 'صلاحيات الموقع مطلوبة لتحديد موقعك');
+        return;
+      }
+
+      // Get current position
+      const location = await Location.getCurrentPositionAsync({
+        accuracy: Location.Accuracy.High,
+      });
+
+      // Reverse geocode to get address
+      const addresses = await Location.reverseGeocodeAsync({
+        latitude: location.coords.latitude,
+        longitude: location.coords.longitude
+      });
+
+      const address = addresses[0] ?
+        `${addresses[0].name || addresses[0].street || ''}, ${addresses[0].district || addresses[0].subregion || ''}, ${addresses[0].city || addresses[0].region || ''}`.replace(/^, |, $/g, '')
+        : 'لم يتمكن من تحديد العنوان';
+
+      // Update form data with coordinates [longitude, latitude] and address
+      setFormData(prev => ({
+        ...prev,
+        coordinates: [location.coords.longitude, location.coords.latitude],
+        address: address
+      }));
+
+      Toast.show({
+        type: 'success',
+        text1: 'نجح',
+        text2: 'تم جلب الموقع الجغرافي بنجاح',
+        position: 'top',
+        visibilityTime: 2000,
+      });
+    } catch (error) {
+      console.error('Error getting location:', error);
+      Toast.show({
+        type: 'error',
+        text1: 'خطأ',
+        text2: 'فشل في جلب الموقع الجغرافي',
+        position: 'top',
+        visibilityTime: 3000,
+      });
+    }
   };
 
   // Validate Egyptian phone number
@@ -84,62 +154,65 @@ const AuthScreen = () => {
 
     setLoading(true);
 
-    try {
-      // API call here
-      const response = await fetch(`${API_BASE_URL}/auth/login`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          phone: formData.phone,
-          password: formData.password,
-        }),
+    // Use the auth store to handle login
+    const loginSuccess = await auth.loginWithPhone(formData.phone, formData.password);
+    
+    if (loginSuccess) {
+      Toast.show({
+        type: 'success',
+        text1: 'نجح',
+        text2: 'تم تسجيل الدخول بنجاح',
+        position: 'top',
+        visibilityTime: 2000,
       });
-
-      const data = await response.json();
-
-      if (response.ok) {
-        Toast.show({
-          type: 'success',
-          text1: 'نجح',
-          text2: 'تم تسجيل الدخول بنجاح',
-          position: 'top',
-          visibilityTime: 2000,
-        });
-        // Handle successful login (save token, navigate, etc.)
-        // await AsyncStorage.setItem('token', data.token);
-        // navigation.navigate('Home');
-      } else {
-        Toast.show({
-          type: 'error',
-          text1: 'خطأ',
-          text2: data.message || 'فشل تسجيل الدخول',
-          position: 'top',
-          visibilityTime: 3000,
-        });
-      }
-    } catch (error) {
+      // Navigate to home screen after successful login
+      router.replace('/(tabs)/index');
+    } else {
+      // The auth store will show a specific error toast
+      // but we can show a generic one here if needed, or just rely on the store's toast.
+      // For example:
       Toast.show({
         type: 'error',
-        text1: 'خطأ',
-        text2: 'حدث خطأ في الاتصال بالخادم',
+        text1: 'فشل تسجيل الدخول',
+        text2: 'يرجى التحقق من رقم الهاتف وكلمة المرور',
         position: 'top',
         visibilityTime: 3000,
       });
-    } finally {
-      setLoading(false);
     }
+
+    setLoading(false);
   };
 
   // Handle Register
   const handleRegister = async () => {
     // Validation
-    if (!formData.name) {
+    if (!formData.firstName) {
       Toast.show({
         type: 'error',
         text1: 'خطأ',
-        text2: 'الاسم مطلوب',
+        text2: 'الاسم الأول مطلوب',
+        position: 'top',
+        visibilityTime: 3000,
+      });
+      return;
+    }
+
+    if (!formData.lastName) {
+      Toast.show({
+        type: 'error',
+        text1: 'خطأ',
+        text2: 'الاسم الأخير مطلوب',
+        position: 'top',
+        visibilityTime: 3000,
+      });
+      return;
+    }
+
+    if (!formData.coordinates) {
+      Toast.show({
+        type: 'error',
+        text1: 'خطأ',
+        text2: 'يرجى تحديد الموقع الجغرافي',
         position: 'top',
         visibilityTime: 3000,
       });
@@ -222,10 +295,12 @@ const AuthScreen = () => {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          name: formData.name,
+          firstName: formData.firstName,
+          lastName: formData.lastName,
           phone: formData.phone,
           email: formData.email || undefined,
           password: formData.password,
+          coordinates: formData.coordinates,
         }),
       });
 
@@ -239,8 +314,14 @@ const AuthScreen = () => {
           position: 'top',
           visibilityTime: 2000,
         });
-        // Navigate to OTP verification screen
-        // navigation.navigate('OTPVerification', { phone: formData.phone });
+        
+        // Switch to login mode with pre-filled phone and password
+        setIsLogin(true);
+        setFormData(prev => ({
+          ...prev,
+          phone: formData.phone,
+          password: formData.password,
+        }));
       } else {
         Toast.show({
           type: 'error',
@@ -264,16 +345,19 @@ const AuthScreen = () => {
   };
 
   // Toggle between login and register
-  const toggleAuthMode = () => {
-    setIsLogin(!isLogin);
-    setFormData({
-      name: '',
-      phone: '',
-      email: '',
-      password: '',
-      confirmPassword: '',
-    });
-  };
+    const toggleAuthMode = () => {
+      setIsLogin(!isLogin);
+      setFormData({
+        firstName: '',
+        lastName: '',
+        phone: '',
+        email: '',
+        password: '',
+        confirmPassword: '',
+        coordinates: null,
+        address: null,
+      });
+    };
 
   return (
     <KeyboardAvoidingView
@@ -291,7 +375,7 @@ const AuthScreen = () => {
             <View className="w-24 h-24 bg-emerald-500 rounded-full items-center justify-center mb-4">
               <Ionicons name="storefront" size={48} color="white" />
             </View>
-            <Text className="text-3xl font-bold text-gray-800 mb-2">
+            <Text className="text-3xl font-bold text-gray-80 mb-2">
               {isLogin ? 'مرحباً بعودتك' : 'إنشاء حساب جديد'}
             </Text>
             <Text className="text-gray-500 text-center">
@@ -303,19 +387,38 @@ const AuthScreen = () => {
 
           {/* Form */}
           <View className="space-y-4">
-            {/* Name Field (Register only) */}
+            {/* First Name Field (Register only) */}
             {!isLogin && (
               <View>
                 <Text className="text-gray-700 font-semibold mb-2 text-right">
-                  الاسم
+                  الاسم الأول
                 </Text>
                 <View className="flex-row items-center bg-gray-50 border border-gray-200 rounded-lg px-4 py-3">
                   <Ionicons name="person-outline" size={20} color="#9CA3AF" />
                   <TextInput
                     className="flex-1 text-right mr-3"
-                    placeholder="أدخل اسمك"
-                    value={formData.name}
-                    onChangeText={(value) => handleChange('name', value)}
+                    placeholder="أدخل الاسم الأول"
+                    value={formData.firstName}
+                    onChangeText={(value) => handleChange('firstName', value)}
+                    placeholderTextColor="#9CA3AF"
+                  />
+                </View>
+              </View>
+            )}
+
+            {/* Last Name Field (Register only) */}
+            {!isLogin && (
+              <View>
+                <Text className="text-gray-700 font-semibold mb-2 text-right">
+                  الاسم الأخير
+                </Text>
+                <View className="flex-row items-center bg-gray-50 border border-gray-200 rounded-lg px-4 py-3">
+                  <Ionicons name="person-outline" size={20} color="#9CA3AF" />
+                  <TextInput
+                    className="flex-1 text-right mr-3"
+                    placeholder="أدخل الاسم الأخير"
+                    value={formData.lastName}
+                    onChangeText={(value) => handleChange('lastName', value)}
                     placeholderTextColor="#9CA3AF"
                   />
                 </View>
@@ -410,6 +513,41 @@ const AuthScreen = () => {
               </View>
             )}
 
+            {/* Location Section (Register only) */}
+            {!isLogin && (
+              <View className="mt-4">
+                <Text className="text-gray-700 font-semibold mb-2 text-right">
+                  الموقع الجغرافي
+                </Text>
+                
+                {/* Show address if available */}
+                {formData.address ? (
+                  <View className="bg-emerald-50 border-emerald-200 rounded-lg p-3 mb-2">
+                    <Text className="text-emerald-70 text-sm text-right">
+                      العنوان: {formData.address}
+                    </Text>
+                  </View>
+                ) : (
+                  <View className="bg-gray-50 border-gray-200 rounded-lg p-3 mb-2">
+                    <Text className="text-gray-500 text-sm text-right">
+                      لم يتم تحديد الموقع الجغرافي
+                    </Text>
+                  </View>
+                )}
+
+                {/* Get Current Location Button */}
+                <TouchableOpacity
+                  className="bg-blue-500 rounded-lg py-3 items-center"
+                  onPress={getCurrentLocation}
+                  activeOpacity={0.8}
+                >
+                  <Text className="text-white text-base font-semibold">
+                    جلب الموقع الحالي
+                  </Text>
+                </TouchableOpacity>
+              </View>
+            )}
+
             {/* Forgot Password (Login only) */}
             {isLogin && (
               <TouchableOpacity className="self-end">
@@ -431,7 +569,7 @@ const AuthScreen = () => {
               <ActivityIndicator color="white" />
             ) : (
               <Text className="text-white text-lg font-bold">
-                {isLogin ? 'تسجيل الدخول' : 'إنشاء حساب'}
+                {isLogin ? 'تسجيل الدخول برقم الهاتف' : 'إنشاء حساب'}
               </Text>
             )}
           </TouchableOpacity>

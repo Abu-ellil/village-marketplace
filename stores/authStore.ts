@@ -15,6 +15,7 @@ interface AuthState {
   user: User | null;
   isLoading: boolean;
   login: (email: string, password: string) => Promise<boolean>;
+  loginWithPhone: (phone: string, password: string) => Promise<boolean>;
   register: (userData: { firstName: string; lastName: string; phone: string; email: string; password: string; coordinates: [number, number]; }) => Promise<boolean>;
   sendOTP: (phone: string) => Promise<boolean>;
   verifyOTP: (phone: string, otp: string) => Promise<boolean>;
@@ -63,8 +64,7 @@ export const useAuthStore = create<AuthState>()((set, get) => ({
   login: async (email, password) => {
     set({ isLoading: true });
     try {
-      const response = await axios.post(`${API_BASE_URL}/auth/login`, { email, password });
-      const { token, user: userData } = response.data;
+      const { token, data: { user: userData } } = response.data;
       
       const newUser: User = { ...userData, token };
       await AsyncStorage.setItem(USER_STORAGE_KEY, JSON.stringify(userData));
@@ -80,6 +80,39 @@ export const useAuthStore = create<AuthState>()((set, get) => ({
       let userFriendlyMessage = errorMessage;
       if (e.response?.status === 401) {
         userFriendlyMessage = errorData?.message || 'Invalid email or password.';
+      } else if (e.response?.status === 404) {
+        userFriendlyMessage = 'User not found.';
+      } else if (e.response?.status === 429) {
+        userFriendlyMessage = 'Too many login attempts. Please try again later.';
+      }
+      
+      useToastStore.getState().show(userFriendlyMessage);
+      return false;
+    } finally {
+      set({ isLoading: false });
+    }
+  },
+  
+  loginWithPhone: async (phone, password) => {
+    set({ isLoading: true });
+    try {
+      const response = await axios.post(`${API_BASE_URL}/auth/login`, { phone, password });
+      const { token, data: { user: userData } } = response.data;
+      
+      const newUser: User = { ...userData, token };
+      await AsyncStorage.setItem(USER_STORAGE_KEY, JSON.stringify(userData));
+      await AsyncStorage.setItem(TOKEN_STORAGE_KEY, token);
+      set({ user: newUser });
+      useToastStore.getState().show('Login successful!');
+      return true;
+    } catch (e: any) {
+      const errorData = e.response?.data;
+      const errorMessage = errorData?.message || 'An unexpected error occurred.';
+      
+      // Provide more specific error messages for common scenarios
+      let userFriendlyMessage = errorMessage;
+      if (e.response?.status === 401) {
+        userFriendlyMessage = errorData?.message || 'Invalid phone number or password.';
       } else if (e.response?.status === 404) {
         userFriendlyMessage = 'User not found.';
       } else if (e.response?.status === 429) {

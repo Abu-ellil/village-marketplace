@@ -328,20 +328,28 @@ const getUserStats = asyncHandler(async (req, res, next) => {
   );
 });
 
-// Login with email/password
+// Login with email/password or phone/password
 const login = asyncHandler(async (req, res, next) => {
-  const { email, password } = req.body;
+  const { email, phone, password } = req.body;
 
-  // Validate email and password exist
-  if (!email || !password) {
-    return next(new AppError('يرجى إدخال البريد الإلكتروني وكلمة المرور', 400));
+  // Validate that either email or phone and password exist
+ if ((!email && !phone) || !password) {
+    return next(new AppError('يرجى إدخال البريد الإلكتروني أو رقم الهاتف وكلمة المرور', 400));
+  }
+
+  // Determine if login is by email or phone
+  let query = {};
+  if (email) {
+    query = { email: email };
+  } else if (phone) {
+    query = { phone: phone };
   }
 
   // Check if user exists and password is correct
-  const user = await User.findOne({ email: email }).select('+password');
+  const user = await User.findOne(query).select('+password');
 
   if (!user || !(await user.correctPassword(password, user.password))) {
-    return next(new AppError('البريد الإلكتروني أو كلمة المرور غير صحيحة', 401));
+    return next(new AppError('البريد الإلكتروني أو رقم الهاتف أو كلمة المرور غير صحيحة', 401));
   }
 
   // Check if user is active
