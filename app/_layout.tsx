@@ -1,6 +1,7 @@
 import React, { useEffect, useState, useCallback } from "react";
 import { Redirect } from "expo-router";
 import { useAuth } from "../context/AuthContext";
+import { CartProvider } from "../context/CartContext";
 import { useAuthStore } from "../stores/authStore";
 import { useCartStore } from "../stores/cartStore";
 import { useOrdersStore } from "../stores/ordersStore";
@@ -133,6 +134,7 @@ export default function RootLayout() {
     <QueryClientProvider client={queryClient}>
         <SafeAreaProvider>
           <SafeAreaView className="flex-1 bg-neutral-50">
+            <CartProvider>
             {isLoading ? (
               <View style={{ flex: 1, backgroundColor: '#fff' }} />
             ) : user ? (
@@ -149,6 +151,7 @@ export default function RootLayout() {
               <Redirect href="/login" />
             )}
             <Toast />
+            </CartProvider>
           </SafeAreaView>
         </SafeAreaProvider>
     </QueryClientProvider>

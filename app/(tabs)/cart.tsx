@@ -39,7 +39,7 @@ export default function Cart() {
 
   return (
     <View className="flex-1 bg-gray-100">
-      <Header />
+      <Header cartItemsCount={items.length} />
       <ScrollView contentContainerStyle={{ padding: 16 }}>
         <Text className="text-xl font-bold mb-4">سلة التسوق</Text>
         {items.length === 0 && <Text>السلة فارغة</Text>}

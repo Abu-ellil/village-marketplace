@@ -1,9 +1,13 @@
 import React from 'react';
 import { Tabs } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
+import { View, Text } from 'react-native'; // Import View and Text
 import { colors } from '../../theme/colors';
+import { useCartStore } from '../../stores/cartStore'; // Import useCartStore
 
 export default function TabLayout() {
+  const { totalCount } = useCartStore(); // Get totalCount from the store
+
   return (
     <Tabs
       screenOptions={{
@@ -42,7 +46,28 @@ export default function TabLayout() {
         options={{
           title: 'السلة',
           tabBarIcon: ({ color }) => (
-            <Ionicons name="cart-outline" size={24} color={color} />
+            <View>
+              <Ionicons name="cart-outline" size={24} color={color} />
+              {totalCount > 0 && (
+                <View
+                  style={{
+                    position: 'absolute',
+                    right: -6,
+                    top: -3,
+                    backgroundColor: 'red',
+                    borderRadius: 9,
+                    width: 18,
+                    height: 18,
+                    justifyContent: 'center',
+                    alignItems: 'center',
+                  }}
+                >
+                  <Text style={{ color: 'white', fontSize: 10, fontWeight: 'bold' }}>
+                    {totalCount}
+                  </Text>
+                </View>
+              )}
+            </View>
           ),
         }}
       />
