@@ -6,30 +6,12 @@ import Button from "../../components/ui/Button";
 import { Ionicons } from "@expo/vector-icons";
 import { colors } from "../../theme/colors";
 import StarRating from "../../components/ui/StarRating";
-import * as api from "../../app/lib/api";
+import { useServiceById } from "../../app/lib/api";
 import { Service } from "../../types/Service";
 
 export default function ServiceDetail() {
   const { id } = useLocalSearchParams();
-  const [service, setService] = useState<Service | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
-
-  useEffect(() => {
-    const fetchService = async () => {
-      if (!id) return;
-      setIsLoading(true);
-      try {
-        const fetchedService = await api.getServiceById(String(id));
-        setService(fetchedService);
-      } catch (error) {
-        console.error("Failed to fetch service", error);
-        setService(null);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-    fetchService();
-  }, [id]);
+  const { data: service, isLoading, isError, error } = useServiceById(String(id));
 
   if (isLoading) {
     return (
@@ -39,7 +21,7 @@ export default function ServiceDetail() {
     );
   }
 
-  if (!service) {
+  if (isError || !service) {
     return (
       <View>
         <Header />
@@ -55,15 +37,15 @@ export default function ServiceDetail() {
 
   const averageRating = service.reviews && service.reviews.length > 0
     ? (service.reviews.reduce((sum, review) => sum + review.rating, 0) / service.reviews.length)
-    : 0;
-  const numberOfReviews = service.reviews ? service.reviews.length : 0;
+    : service.ratingsAverage || 0;
+  const numberOfReviews = service.reviews ? service.reviews.length : service.ratingsQuantity || 0;
 
   return (
     <View className="flex-1 bg-white">
       <Header />
       <ScrollView>
         <View className="p-4">
-          <Text className="text-2xl font-bold mb-2">{service.name}</Text>
+          <Text className="text-2xl font-bold mb-2">{service.name || service.title}</Text>
 
           <View className="flex-row items-center mb-2">
             <StarRating
@@ -86,8 +68,8 @@ export default function ServiceDetail() {
                 <Text className="text-xl">{service.icon || "🛠"}</Text>
               </View>
               <View>
-                <Text className="text-base font-semibold">{service.provider}</Text>
-                <Text className="text-sm text-gray-500">{service.village}</Text>
+                <Text className="text-base font-semibold">{service.provider || 'مجهول'}</Text>
+                <Text className="text-sm text-gray-500">{service.village || 'غير محدد'}</Text>
               </View>
             </View>
             <Button

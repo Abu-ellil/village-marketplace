@@ -3,7 +3,6 @@ const dotenv = require('dotenv');
 const Product = require('../models/Product');
 const Service = require('../models/Service');
 const Category = require('../models/Category');
-const { ITEMS, SERVICES, CATEGORIES } = require('../../data/mockData');
 
 dotenv.config();
 

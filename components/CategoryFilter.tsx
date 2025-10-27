@@ -25,7 +25,7 @@ const CategoryFilter: React.FC<CategoryFilterProps> = ({
       }}
     >
       {categories && Array.isArray(categories) ? categories.map((category) => {
-        const isSelected = selectedCategory === category.id;
+        const isSelected = (selectedCategory === category.id) || (category.id === 'all' && (!selectedCategory || selectedCategory === 'all'));
 
         return (
           <TouchableOpacity
@@ -49,9 +49,7 @@ const CategoryFilter: React.FC<CategoryFilterProps> = ({
             accessibilityRole="button"
             accessibilityState={{ selected: isSelected }}
           >
-            <Text className="ml-2 text-lg" style={{ textAlign: "center" }}>
-              {category.icon}
-            </Text>
+
 
             <Text
               className={`${

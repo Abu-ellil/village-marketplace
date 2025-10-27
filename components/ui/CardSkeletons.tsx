@@ -41,3 +41,22 @@ export function ServiceCardSkeleton() {
     </Card>
   );
 }
+
+export function CardSkeleton() {
+  return (
+    <View className="bg-white rounded-xl p-4 m-2 flex-1 items-center justify-center shadow-sm"
+      style={{
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.1,
+        shadowRadius: 4,
+        elevation: 3,
+        minWidth: 100,
+        minHeight: 120
+      }}
+    >
+      <Shimmer width={48} height={48} borderRadius={24} className="mb-2" />
+      <Shimmer width="80%" height={16} />
+    </View>
+  );
+}

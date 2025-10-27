@@ -33,6 +33,15 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, onAddToCart }) => {
     (product.image.startsWith('http') ||
       product.image.startsWith('//') ||
       product.image.startsWith('data:'));
+  
+  // Handle image from different possible sources in the API response
+  let productImage = product.image;
+  if (!productImage && product.images && product.images.length > 0) {
+    productImage = product.images[0].url;
+  }
+  if (!productImage && product.mainImage) {
+    productImage = product.mainImage.url;
+ }
 
   const averageRating = product.reviews && product.reviews.length > 0
     ? (product.reviews.reduce((sum, review) => sum + review.rating, 0) / product.reviews.length)
@@ -46,10 +55,10 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, onAddToCart }) => {
     >
       <Card noPadding>
         {isImageUrl ? (
-          <ImageWithPlaceholder uri={String(product.image)} height={160} />
+          <ImageWithPlaceholder uri={String(productImage)} height={160} />
         ) : (
           <View className="aspect-square bg-neutral-100 items-center justify-center">
-            <Text className="text-6xl">{product.image || '🧺'}</Text>
+            <Text className="text-6xl">{productImage || '🧺'}</Text>
           </View>
         )}
 
@@ -58,7 +67,7 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, onAddToCart }) => {
             className="text-lg font-bold text-neutral-900 mb-1"
             numberOfLines={1}
           >
-            {product.name}
+            {product.name || product.title}
           </Text>
 
           <Text className="text-base font-bold text-primary mb-2">
@@ -86,7 +95,7 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, onAddToCart }) => {
                 className="mr-1 text-sm text-neutral-500"
                 numberOfLines={1}
               >
-                {product.village}
+                {product.village || (product.villageId && 'قرية مجهولة')}
               </Text>
             </View>
           </View>
@@ -94,7 +103,7 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, onAddToCart }) => {
           <View className="flex-row items-center mb-3">
             <Ionicons name="person" size={14} color={colors.neutral[400]} />
             <Text className="mr-1 text-sm text-neutral-500" numberOfLines={1}>
-              {product.seller}
+              {product.seller || (product.sellerId && 'مجهول')}
             </Text>
           </View>
 

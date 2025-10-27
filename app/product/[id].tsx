@@ -9,32 +9,31 @@ import ImageWithPlaceholder from "../../components/ui/ImageWithPlaceholder";
 import { Ionicons } from "@expo/vector-icons";
 import { colors } from "../../theme/colors";
 import StarRating from "../../components/ui/StarRating";
-import * as api from "../../app/lib/api";
+import { useProductById } from "../../app/lib/api";
 import { Product } from "../../types/Product";
 
 export default function ProductDetail() {
   const { id } = useLocalSearchParams();
   const router = useRouter();
   const { addToCart } = useCart();
-  const [product, setProduct] = useState<Product | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
+  const { data: product, isLoading, isError, error } = useProductById(String(id));
 
-  useEffect(() => {
-    const fetchProduct = async () => {
-      if (!id) return;
-      setIsLoading(true);
-      try {
-        const fetchedProduct = await api.getProductById(String(id));
-        setProduct(fetchedProduct);
-      } catch (error) {
-        console.error("Failed to fetch product", error);
-        setProduct(null);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-    fetchProduct();
-  }, [id]);
+  if (isLoading) {
+    return (
+      <View className="flex-1 justify-center items-center">
+        <ActivityIndicator size="large" color={colors.primary.DEFAULT} />
+      </View>
+    );
+  }
+
+ if (isError || !product) {
+    return (
+      <View>
+        <Header />
+        <Text className="p-4 text-center">المنتج غير موجود</Text>
+      </View>
+    );
+  }
 
   if (isLoading) {
     return (
@@ -55,8 +54,8 @@ export default function ProductDetail() {
 
   const averageRating = product.reviews && product.reviews.length > 0
     ? (product.reviews.reduce((sum, review) => sum + review.rating, 0) / product.reviews.length)
-    : product.rating || 0;
-  const numberOfReviews = product.reviews ? product.reviews.length : 0;
+    : product.ratingsAverage || product.rating || 0;
+  const numberOfReviews = product.reviews ? product.reviews.length : product.ratingsQuantity || 0;
 
   return (
     <View className="flex-1 bg-white">
@@ -64,10 +63,10 @@ export default function ProductDetail() {
       <ScrollView>
         <ImageWithPlaceholder
           className="w-full h-64"
-          uri={product.image}
+          uri={product.image || (product.images && product.images.length > 0 ? product.images[0].url : product.mainImage?.url)}
         />
         <View className="p-4">
-          <Text className="text-2xl font-bold mb-2">{product.name}</Text>
+          <Text className="text-2xl font-bold mb-2">{product.name || product.title}</Text>
 
           <View className="flex-row items-center mb-2">
             <StarRating
@@ -79,7 +78,7 @@ export default function ProductDetail() {
           </View>
 
           <Text className="text-lg text-green-600 font-semibold mb-4">
-            {formatCurrency(product.price)} / {product.unit}
+            {formatCurrency(product.price)} / {product.unit || 'وحدة'}
           </Text>
           <Text className="text-base text-gray-700 mb-4">
             {product.description}
@@ -91,11 +90,11 @@ export default function ProductDetail() {
             <View className="flex-row items-center">
               <ImageWithPlaceholder
                 className="w-12 h-12 rounded-full mr-4"
-                uri={product.sellerImage}
+                uri={product.sellerImage || 'https://via.placeholder.com/150'}
               />
               <View>
-                <Text className="text-base font-semibold">{product.seller}</Text>
-                <Text className="text-sm text-gray-500">{product.village}</Text>
+                <Text className="text-base font-semibold">{product.seller || 'مجهول'}</Text>
+                <Text className="text-sm text-gray-500">{product.village || 'غير محدد'}</Text>
               </View>
             </View>
           </View>

@@ -101,19 +101,31 @@ export const api = apiClient.getClient();
 
 interface ApiResponse<T> {
   data?: T;
-  results?: T;
-  message?: string;
+ results?: T;
+  message?: string | Record<string, any>;
   success?: boolean;
 }
 
 // Helper to extract data from various response formats
 const extractData = <T>(response: ApiResponse<T>): T => {
+  // Handle the case where products are nested in message.products
+  if (response.message && typeof response.message === 'object' && 'products' in response.message) {
+    return (response.message as any).products;
+  }
+  // Handle the case where services are nested in message.services
+  if (response.message && typeof response.message === 'object' && 'services' in response.message) {
+    return (response.message as any).services;
+  }
+  // Handle the case where categories are nested in message.categories
+  if (response.message && typeof response.message === 'object' && 'categories' in response.message) {
+    return (response.message as any).categories;
+  }
   // Handle the case where products are nested in results.products
   if (response.results && typeof response.results === 'object' && 'products' in response.results) {
     return (response.results as any).products;
   }
   // Handle the case where services are nested in results.services
- if (response.results && typeof response.results === 'object' && 'services' in response.results) {
+  if (response.results && typeof response.results === 'object' && 'services' in response.results) {
     return (response.results as any).services;
   }
   // Handle the case where categories are nested in results.categories
@@ -121,10 +133,14 @@ const extractData = <T>(response: ApiResponse<T>): T => {
     return (response.results as any).categories;
   }
   // Handle the case where data is directly in response.results
-  if (response.results && typeof response.results === 'object' && 'data' in response.results) {
+ if (response.results && typeof response.results === 'object' && 'data' in response.results) {
     return (response.results as any).data;
   }
- return response.results || response.data || (response as unknown as T);
+  // Handle the case where data is directly in response.message
+  if (response.message && typeof response.message === 'object' && 'data' in response.message) {
+    return (response.message as any).data;
+  }
+  return response.results || response.data || (response as unknown as T);
 };
 
 // ============================================================================

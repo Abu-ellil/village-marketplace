@@ -23,8 +23,8 @@ const ServiceCard: React.FC<ServiceCardProps> = ({ service, onContact }) => {
 
   const averageRating = service.reviews && service.reviews.length > 0
     ? (service.reviews.reduce((sum, review) => sum + review.rating, 0) / service.reviews.length)
-    : 0;
-  const numberOfReviews = service.reviews ? service.reviews.length : 0;
+    : service.ratingsAverage || 0;
+  const numberOfReviews = service.reviews ? service.reviews.length : service.ratingsQuantity || 0;
 
   return (
     <TouchableOpacity
@@ -43,7 +43,7 @@ const ServiceCard: React.FC<ServiceCardProps> = ({ service, onContact }) => {
                 className="text-lg font-bold text-neutral-900"
                 numberOfLines={1}
               >
-                {service.name}
+                {service.name || service.title}
               </Text>
               <View className="flex-row items-center">
                 <Text className="text-sm text-neutral-500" numberOfLines={1}>

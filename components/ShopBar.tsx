@@ -2,7 +2,7 @@ import React from "react";
 import { ScrollView, TouchableOpacity, Text, View } from "react-native";
 import ImageWithPlaceholder from "./ui/ImageWithPlaceholder";
 
-type SellerItem = { name: string; image?: string | null };
+type SellerItem = { name: string; image?: string | null; id?: string };
 
 interface ShopBarProps {
   sellers: SellerItem[];
@@ -49,7 +49,7 @@ export default function ShopBar({
         const isSelected = selectedSeller === s.name;
         return (
           <TouchableOpacity
-            key={s.name}
+            key={s.id || `seller-${s.name}`}
             onPress={() => onSelectSeller(isSelected ? null : s.name)}
             className={`px-3 rounded-full flex-row items-center ${
               isSelected ? "bg-green-400" : "bg-white border border-neutral-200"
